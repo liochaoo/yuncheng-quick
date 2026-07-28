@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuncheng.system.user.mapper.SystemUserMapper">
+
+    <select id="selectByIdForUpdate" resultType="com.yuncheng.system.user.entity.SystemUser">
+        SELECT *
+        FROM system_user
+        WHERE id = #{id}
+        FOR UPDATE
+    </select>
+
+    <update id="updateLoginFailureState">
+        UPDATE system_user
+        SET login_failed_count = #{failedCount},
+            login_failure_window_started_at = #{windowStartedAt},
+            login_locked_until = #{lockedUntil}
+        WHERE id = #{id}
+    </update>
+
+    <update id="clearLoginFailureState">
+        UPDATE system_user
+        SET login_failed_count = 0,
+            login_failure_window_started_at = NULL,
+            login_locked_until = NULL
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectUserPage" resultType="com.yuncheng.system.user.entity.SystemUser">
+        SELECT u.*
+        FROM system_user u
+        <where>
+            <if test="query.username != null and query.username != ''">
+                AND u.username LIKE CONCAT('%', #{query.username}, '%')
+            </if>
+            <if test="query.realName != null and query.realName != ''">
+                AND u.real_name LIKE CONCAT('%', #{query.realName}, '%')
+            </if>
+            <if test="query.enabled != null">
+                AND u.enabled = #{query.enabled}
+            </if>
+        </where>
+        ORDER BY u.sort_order ASC, u.id ASC
+    </select>
+
+    <select id="selectRoleUserPage" resultType="com.yuncheng.system.user.entity.SystemUser">
+        SELECT u.id, u.username, u.real_name, u.enabled
+        FROM system_user u
+        <where>
+            <if test="username != null and username != ''">
+                AND u.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                AND u.real_name LIKE CONCAT('%', #{realName}, '%')
+            </if>
+            <if test="excludeSystemRoleUsers">
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM system_user_role protected_ur
+                    INNER JOIN system_role protected_r ON protected_r.id = protected_ur.role_id
+                    WHERE protected_ur.user_id = u.id
+                      AND protected_r.role_type = 'SYSTEM'
+                )
+            </if>
+            <if test="!assigned">
+                AND u.enabled = 1
+            </if>
+            <choose>
+                <when test="assigned">
+                    AND EXISTS (
+                        SELECT 1 FROM system_user_role ur
+                        WHERE ur.user_id = u.id AND ur.role_id = #{roleId}
+                    )
+                </when>
+                <otherwise>
+                    AND NOT EXISTS (
+                        SELECT 1 FROM system_user_role ur
+                        WHERE ur.user_id = u.id AND ur.role_id = #{roleId}
+                    )
+                </otherwise>
+            </choose>
+        </where>
+        ORDER BY u.sort_order ASC, u.id ASC
+    </select>
+
+    <select id="selectIdsByRolesAfter" resultType="java.lang.Long">
+        SELECT DISTINCT ur.user_id
+        FROM system_user_role ur
+        INNER JOIN system_role r ON r.id = ur.role_id
+        WHERE ur.user_id &gt; #{lastId}
+          AND (
+            <if test="roleIds != null and !roleIds.isEmpty()">
+                ur.role_id IN
+                <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+                    #{roleId}
+                </foreach>
+            </if>
+            <if test="roleIds != null and !roleIds.isEmpty() and roleCodes != null and !roleCodes.isEmpty()">
+                OR
+            </if>
+            <if test="roleCodes != null and !roleCodes.isEmpty()">
+                r.role_code IN
+                <foreach collection="roleCodes" item="roleCode" open="(" separator="," close=")">
+                    #{roleCode}
+                </foreach>
+            </if>
+          )
+        ORDER BY ur.user_id ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countEnabledUsersByRoleCode" resultType="long">
+        SELECT COUNT(DISTINCT u.id)
+        FROM system_user u
+        INNER JOIN system_user_role ur ON ur.user_id = u.id
+        INNER JOIN system_role r ON r.id = ur.role_id
+        WHERE u.enabled = 1
+          AND r.role_code = #{roleCode}
+        <if test="excludedUserId != null">
+          AND u.id != #{excludedUserId}
+        </if>
+    </select>
+</mapper>

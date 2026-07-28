@@ -1,0 +1,9 @@
+pre-commit:
+  parallel: true
+  commands:
+    web-typecheck:
+      glob: "web/**"
+      run: node web/node_modules/vue-tsc/bin/vue-tsc.js --noEmit --skipLibCheck -p web/apps/web-ele/tsconfig.json
+    server-compile:
+      glob: "server/**"
+      run: mvn -f server/pom.xml -DskipTests compile

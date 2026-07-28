@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuncheng.system.role.mapper.SystemUserRoleMapper">
+
+    <select id="selectRoleSummariesByUserIds"
+            resultType="com.yuncheng.system.role.mapper.RoleSummaryRow">
+        SELECT ur.user_id,
+               r.id AS role_id,
+               r.role_code,
+               r.role_name,
+               r.role_type
+        FROM system_user_role ur
+        INNER JOIN system_role r ON r.id = ur.role_id
+        WHERE ur.user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        ORDER BY r.sort_order ASC, r.id ASC
+    </select>
+
+    <select id="selectRoleCodes" resultType="java.lang.String">
+        SELECT r.role_code
+        FROM system_user_role ur
+        INNER JOIN system_role r ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.sort_order ASC, r.id ASC
+    </select>
+
+    <select id="selectUserIdsByRoleId" resultType="java.lang.Long">
+        SELECT user_id
+        FROM system_user_role
+        WHERE role_id = #{roleId}
+        ORDER BY user_id ASC
+    </select>
+
+    <select id="selectSystemRoleUserIds" resultType="java.lang.Long">
+        SELECT DISTINCT ur.user_id
+        FROM system_user_role ur
+        INNER JOIN system_role r ON r.id = ur.role_id
+        WHERE ur.user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+          AND r.role_type = 'SYSTEM'
+    </select>
+
+    <select id="selectUserIdsHavingOnlyRole" resultType="java.lang.Long">
+        SELECT user_id
+        FROM system_user_role
+        WHERE user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        GROUP BY user_id
+        HAVING COUNT(*) = 1
+           AND MAX(role_id) = #{roleId}
+    </select>
+
+    <select id="countSystemRolesByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM system_user_role ur
+        INNER JOIN system_role r ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+          AND r.role_type = 'SYSTEM'
+    </select>
+</mapper>

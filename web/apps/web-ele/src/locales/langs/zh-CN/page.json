@@ -1,0 +1,7 @@
+{
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "forgetPassword": "忘记密码"
+  }
+}

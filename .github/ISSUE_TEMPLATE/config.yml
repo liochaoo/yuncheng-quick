@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全问题报告
+    url: https://github.com/liochaoo/yuncheng-quick/blob/main/SECURITY.md
+    about: 安全漏洞请按照安全策略通过邮件报告，不要公开提交 Issue。

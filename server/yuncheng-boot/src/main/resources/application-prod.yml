@@ -1,0 +1,176 @@
+spring:
+  application:
+    name: yuncheng-quick-server
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  datasource:
+    # 生产环境数据库连接信息必须通过环境变量提供。
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: ${DB_POOL_MINIMUM_IDLE:2}
+      maximum-pool-size: ${DB_POOL_MAXIMUM_SIZE:10}
+      connection-timeout: 30000
+      validation-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:0}
+      password: ${REDIS_PASSWORD:}
+      connect-timeout: 3s
+      timeout: 3s
+  mail:
+    host: ${MAIL_HOST:smtp.163.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    ssl:
+      enabled: ${MAIL_SSL_ENABLED:true}
+    properties:
+      "[mail.smtp.auth]": true
+      "[mail.smtp.connectiontimeout]": 10000
+      "[mail.smtp.timeout]": 10000
+      "[mail.smtp.writetimeout]": 10000
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 21MB
+
+server:
+  port: ${SERVER_PORT:8087}
+  shutdown: graceful
+  forward-headers-strategy: native
+
+management:
+  endpoints:
+    access:
+      default: none
+    web:
+      discovery:
+        enabled: false
+  endpoint:
+    health:
+      access: unrestricted
+  health:
+    mail:
+      enabled: false
+
+logging:
+  pattern:
+    level: "[traceId:%X{traceId:--}] %5p"
+
+captcha:
+  prefix: yuncheng-quick:runtime:captcha
+  expire:
+    default: 120000
+
+dromara:
+  x-file-storage:
+    # 新上传文件使用的存储平台，可选 local-main、minio-main 或 aliyun-oss-main。
+    default-platform: ${PLATFORM_FILE_DEFAULT_PLATFORM:local-main}
+    local-plus:
+      - platform: local-main
+        enable-storage: true
+        enable-access: false
+        storage-path: ${PLATFORM_FILE_LOCAL_PATH:./data/files/}
+    # MinIO 配置示例，启用前需要创建存储桶并通过环境变量填写有效凭据。
+    minio:
+      - platform: minio-main
+        enable-storage: ${PLATFORM_FILE_MINIO_ENABLED:false}
+        end-point: ${PLATFORM_FILE_MINIO_ENDPOINT:http://localhost:9000}
+        access-key: ${PLATFORM_FILE_MINIO_ACCESS_KEY:change-me}
+        secret-key: ${PLATFORM_FILE_MINIO_SECRET_KEY:change-me}
+        bucket-name: ${PLATFORM_FILE_MINIO_BUCKET_NAME:change-me}
+    # 阿里云 OSS 配置示例，使用前需要先创建对应的存储桶并填写有效凭证。
+    aliyun-oss:
+      - platform: aliyun-oss-main
+        enable-storage: ${PLATFORM_FILE_ALIYUN_OSS_ENABLED:false}
+        end-point: ${PLATFORM_FILE_ALIYUN_OSS_ENDPOINT:https://oss-cn-example.aliyuncs.com}
+        access-key: ${PLATFORM_FILE_ALIYUN_OSS_ACCESS_KEY:change-me}
+        secret-key: ${PLATFORM_FILE_ALIYUN_OSS_SECRET_KEY:change-me}
+        bucket-name: ${PLATFORM_FILE_ALIYUN_OSS_BUCKET_NAME:change-me}
+
+platform:
+  auth:
+    jwt:
+      # JWT 签名密钥必须通过环境变量提供，且长度不能少于 32 字节。
+      secret: ${PLATFORM_AUTH_JWT_SECRET}
+      # JWT 签发者，用于确认 Token 的签发来源。
+      issuer: yuncheng-quick
+      # JWT 接收方，用于限制 Token 可访问的服务。
+      audience: yuncheng-quick-server
+      # Access Token 有效期。
+      access-token-ttl: 30m
+      # Refresh Token 和登录 Session 的最长有效期。
+      refresh-token-ttl: 7d
+      # Refresh Token 轮换时旧 Token 的重叠有效时间。
+      refresh-token-overlap: 30s
+    refresh-cookie:
+      # Refresh Token Cookie 名称。
+      name: yuncheng-quick-refresh-token
+      # Refresh Token Cookie 生效路径。
+      path: /api/auth
+      # 生产环境默认只允许通过 HTTPS 传输 Refresh Token Cookie。
+      secure: ${PLATFORM_AUTH_REFRESH_COOKIE_SECURE:true}
+      # Cookie 跨站策略。
+      same-site: Lax
+    redis:
+      # 认证相关 Redis Key 的统一前缀。
+      key-prefix: yuncheng-quick
+  web:
+    # 用户登录后的默认前端路由，只用于前端导航，需要与前端配置保持一致。
+    home-path: /workspace
+  init:
+    admin:
+      # 首次初始化使用的管理员登录名。
+      username: admin
+      # 首次初始化使用的管理员密码，必须通过环境变量提供。
+      password: ${PLATFORM_INIT_ADMIN_PASSWORD}
+      # 首次初始化使用的管理员姓名。
+      real-name: 管理员
+  mybatis:
+    id-generator:
+      # 雪花 ID 数据中心编号，取值范围为 0～31，多集群写入同一数据库时不能重复。
+      datacenter-id: ${PLATFORM_MYBATIS_DATACENTER_ID:0}
+      # 雪花 ID 工作节点编号，取值范围为 0～31，同一数据中心内的实例不能重复。
+      worker-id: ${PLATFORM_MYBATIS_WORKER_ID:0}
+  mail:
+    # 是否只记录邮件内容而不连接真实邮件服务器，本地默认开启。
+    mock-enabled: ${PLATFORM_MAIL_MOCK_ENABLED:true}
+    # 发件邮箱地址，默认使用邮件服务器账号。
+    from-address: ${PLATFORM_MAIL_FROM_ADDRESS:${MAIL_USERNAME:}}
+    # 收件人看到的发件人名称。
+    from-name: 云程快速开发平台
+  file:
+    # 文件上传策略仅配置大小和文件类型，公开或私有访问由后端按策略编码固定。
+    policies:
+      attachment:
+        # 单个通用附件允许的最大文件大小。
+        max-size: 20MB
+        # 通用附件允许上传的文件扩展名。
+        allowed-extensions: [pdf, txt, csv, xls, xlsx, doc, docx, ppt, pptx, zip, rar, 7z]
+      image:
+        # 单张业务图片允许的最大文件大小。
+        max-size: 10MB
+        # 业务图片允许上传的文件扩展名。
+        allowed-extensions: [jpg, jpeg, png, gif, webp, bmp, ico]
+      avatar:
+        # 单张头像允许的最大文件大小。
+        max-size: 5MB
+        # 头像允许上传的文件扩展名。
+        allowed-extensions: [jpg, jpeg, png, webp]
+      public-image:
+        # 单张公开图片允许的最大文件大小。
+        max-size: 10MB
+        # 公开图片允许上传的文件扩展名。
+        allowed-extensions: [jpg, jpeg, png, gif, webp, bmp, ico]
+  log:
+    cleanup:
+      # 是否注册系统日志每日自动清理任务；关闭后仍允许按保留期限手动清理。
+      auto-enabled: ${PLATFORM_LOG_CLEANUP_AUTO_ENABLED:true}
+      # 登录日志和操作日志至少保留的天数，自动清理和手动清理共同遵守。
+      retention-days: ${PLATFORM_LOG_CLEANUP_RETENTION_DAYS:180}

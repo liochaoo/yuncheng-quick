@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuncheng.system.menu.mapper.SystemMenuMapper">
+
+    <sql id="menuColumns">
+        m.id, m.parent_id, m.menu_type, m.menu_name, m.route_name, m.route_path,
+        m.component_path, m.redirect, m.permission_code, m.sort_order,
+        m.icon, m.active_icon, m.active_path, m.badge, m.badge_type, m.badge_variants,
+        m.affix_tab, m.affix_tab_order, m.hide_in_menu, m.hide_children_in_menu,
+        m.hide_in_breadcrumb, m.hide_in_tab, m.keep_alive, m.full_path_key,
+        m.open_in_new_window, m.no_basic_layout, m.max_num_of_open_tab,
+        m.query_params, m.link, m.iframe_src,
+        m.created_at, m.created_by, m.updated_at, m.updated_by
+    </sql>
+
+    <select id="selectEffectiveRoutesByUserId" resultType="com.yuncheng.system.menu.entity.SystemMenu">
+        WITH RECURSIVE authorized_menu AS (
+            SELECT DISTINCT assigned.id, assigned.parent_id
+            FROM system_menu assigned
+            INNER JOIN system_role_menu rm ON rm.menu_id = assigned.id
+            INNER JOIN system_user_role ur ON ur.role_id = rm.role_id
+            WHERE ur.user_id = #{userId}
+              AND assigned.menu_type != 'CATALOG'
+            UNION DISTINCT
+            SELECT parent.id, parent.parent_id
+            FROM system_menu parent
+            INNER JOIN authorized_menu child ON parent.id = child.parent_id
+        )
+        SELECT <include refid="menuColumns"/>
+        FROM system_menu m
+        INNER JOIN authorized_menu authorized ON authorized.id = m.id
+        WHERE m.menu_type != 'BUTTON'
+        ORDER BY m.parent_id, m.sort_order, m.id
+    </select>
+
+    <select id="selectAllEffectiveRoutes" resultType="com.yuncheng.system.menu.entity.SystemMenu">
+        SELECT <include refid="menuColumns"/>
+        FROM system_menu m
+        WHERE m.menu_type != 'BUTTON'
+        ORDER BY m.parent_id, m.sort_order, m.id
+    </select>
+
+    <select id="selectPermissionCodesByUserId" resultType="java.lang.String">
+        SELECT DISTINCT m.permission_code
+        FROM system_menu m
+        INNER JOIN system_role_menu rm ON rm.menu_id = m.id
+        INNER JOIN system_user_role ur ON ur.role_id = rm.role_id
+        WHERE ur.user_id = #{userId}
+          AND m.permission_code IS NOT NULL
+          AND m.permission_code != ''
+        ORDER BY m.permission_code
+    </select>
+
+    <select id="selectAllPermissionCodes" resultType="java.lang.String">
+        SELECT DISTINCT permission_code
+        FROM system_menu
+        WHERE permission_code IS NOT NULL
+          AND permission_code != ''
+        ORDER BY permission_code
+    </select>
+
+    <select id="selectSubtreeIds" resultType="java.lang.Long">
+        WITH RECURSIVE subtree AS (
+            SELECT id, 0 AS depth FROM system_menu WHERE id = #{menuId}
+            UNION ALL
+            SELECT child.id, parent.depth + 1
+            FROM system_menu child
+            INNER JOIN subtree parent ON parent.id = child.parent_id
+        )
+        SELECT id FROM subtree ORDER BY depth DESC, id DESC
+    </select>
+
+    <select id="selectRelatedRoleIds" resultType="java.lang.Long">
+        SELECT DISTINCT role_id
+        FROM system_role_menu
+        WHERE menu_id IN
+        <foreach collection="menuIds" item="menuId" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+        ORDER BY role_id
+    </select>
+</mapper>

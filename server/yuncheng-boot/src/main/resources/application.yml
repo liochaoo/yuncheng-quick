@@ -1,0 +1,4 @@
+spring:
+  profiles:
+    # 本地启动默认使用 dev；生产部署通过 SPRING_PROFILES_ACTIVE=prod 切换。
+    default: dev

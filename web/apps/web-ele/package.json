@@ -1,0 +1,54 @@
+{
+  "name": "@yuncheng/web-ele",
+  "version": "0.1.0-alpha.1",
+  "homepage": "https://github.com/liochaoo/yuncheng-quick",
+  "bugs": "https://github.com/liochaoo/yuncheng-quick/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liochaoo/yuncheng-quick.git",
+    "directory": "web/apps/web-ele"
+  },
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Yuncheng",
+    "email": "liochaoo@163.com",
+    "url": "https://github.com/liochaoo"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "pnpm vite build --mode production",
+    "build:analyze": "pnpm vite build --mode analyze",
+    "dev": "pnpm vite --mode development",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit --skipLibCheck"
+  },
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "catalog:",
+    "@vben/access": "workspace:*",
+    "@vben/common-ui": "workspace:*",
+    "@vben/constants": "workspace:*",
+    "@vben/hooks": "workspace:*",
+    "@vben/icons": "workspace:*",
+    "@vben/layouts": "workspace:*",
+    "@vben/locales": "workspace:*",
+    "@vben/plugins": "workspace:*",
+    "@vben/preferences": "workspace:*",
+    "@vben/request": "workspace:*",
+    "@vben/stores": "workspace:*",
+    "@vben/styles": "workspace:*",
+    "@vben/types": "workspace:*",
+    "@vben/utils": "workspace:*",
+    "@vueuse/core": "catalog:",
+    "dayjs": "catalog:",
+    "element-plus": "catalog:",
+    "pinia": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:"
+  },
+  "devDependencies": {
+    "unplugin-element-plus": "catalog:"
+  }
+}

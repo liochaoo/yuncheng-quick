@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.yuncheng</groupId>
+    <artifactId>yuncheng-quick</artifactId>
+    <version>0.1.0-alpha.1</version>
+    <packaging>pom</packaging>
+    <name>Yuncheng Quick</name>
+    <description>基于 Spring Boot 4 和 Vben Admin 5.7 的企业级管理系统快速开发框架</description>
+    <url>https://github.com/liochaoo/yuncheng-quick</url>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>liochaoo</id>
+            <name>码小白</name>
+            <email>liochaoo@163.com</email>
+            <url>https://github.com/liochaoo</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/liochaoo/yuncheng-quick.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/liochaoo/yuncheng-quick.git</developerConnection>
+        <url>https://github.com/liochaoo/yuncheng-quick</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <modules>
+        <module>yuncheng-parent</module>
+        <module>yuncheng-common</module>
+        <module>yuncheng-framework</module>
+        <module>yuncheng-system</module>
+        <module>yuncheng-init</module>
+        <module>yuncheng-demo</module>
+        <module>yuncheng-boot</module>
+    </modules>
+</project>
