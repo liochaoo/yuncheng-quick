@@ -10,7 +10,9 @@ import '@vben/styles/ele';
 import { useTitle } from '@vueuse/core';
 import { ElLoading } from 'element-plus';
 
+import { getExperienceConfigApi } from '#/api';
 import { $t, setupI18n } from '#/locales';
+import { cacheExperienceEnabled } from '#/utils/experience';
 
 import { initComponentAdapter } from './adapter/component';
 import { initSetupVbenForm } from './adapter/form';
@@ -54,6 +56,14 @@ async function bootstrap(namespace: string) {
 
   // 平台不提供时区切换，统一使用应用配置的固定时区。
   await useTimezoneStore().setTimezone(preferences.app.timezone);
+
+  cacheExperienceEnabled(false);
+  try {
+    const experienceConfig = await getExperienceConfigApi();
+    cacheExperienceEnabled(experienceConfig.experienceEnabled);
+  } catch {
+    // 公开配置读取失败时按普通环境处理，不阻塞应用启动。
+  }
 
   // 安装权限指令
   registerAccessDirective(app);

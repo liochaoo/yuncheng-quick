@@ -16,6 +16,12 @@ import { useAccessStore } from '@vben/stores';
 import { ElMessage } from 'element-plus';
 
 import { useAuthStore } from '#/store';
+import {
+  createExperienceForbiddenError,
+  experienceForbiddenMessage,
+  isExperienceForbiddenError,
+  shouldBlockExperienceRequest,
+} from '#/utils/experience';
 
 import { refreshTokenApi } from './core';
 
@@ -41,6 +47,21 @@ function showRequestError(message: string, error: any) {
 
   // 并行请求返回相同错误时，使用 Element Plus 自带的消息合并能力。
   ElMessage({ grouping: true, message, type: 'error' });
+}
+
+function assertExperienceRequestAllowed(config: {
+  method?: string;
+  url?: string;
+}) {
+  if (!shouldBlockExperienceRequest(config)) {
+    return;
+  }
+  ElMessage({
+    grouping: true,
+    message: experienceForbiddenMessage(),
+    type: 'warning',
+  });
+  throw createExperienceForbiddenError();
 }
 
 /**
@@ -89,6 +110,9 @@ function addDataResponseInterceptor(client: RequestClient) {
 function addErrorResponseInterceptor(client: RequestClient) {
   client.addResponseInterceptor(
     errorMessageResponseInterceptor((msg: string, error) => {
+      if (isExperienceForbiddenError(error)) {
+        return;
+      }
       // 优先展示后端返回的中文错误信息。
       const responseData = error?.response?.data ?? error ?? {};
       const errorMessage = responseData?.message ?? '';
@@ -140,6 +164,7 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
     fulfilled: async (config) => {
       const accessStore = useAccessStore();
 
+      assertExperienceRequestAllowed(config);
       config.headers.Authorization = formatToken(accessStore.accessToken);
       config.headers['Accept-Language'] = preferences.app.locale;
       return config;
@@ -180,6 +205,13 @@ export const authRequestClient = new RequestClient({
   baseURL: apiURL,
   responseReturn: 'data',
   withCredentials: true,
+});
+
+authRequestClient.addRequestInterceptor({
+  fulfilled: async (config) => {
+    assertExperienceRequestAllowed(config);
+    return config;
+  },
 });
 
 addDataResponseInterceptor(authRequestClient);

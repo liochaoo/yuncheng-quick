@@ -16,6 +16,7 @@ public final class SecurityConstants {
             WebConstants.API_PREFIX + "/auth/password/email-code",
             WebConstants.API_PREFIX + "/auth/password/reset",
             WebConstants.API_PREFIX + "/auth/security-policy",
+            WebConstants.API_PREFIX + "/auth/experience-config",
             WebConstants.API_PREFIX + "/auth/captcha/get",
             WebConstants.API_PREFIX + "/auth/captcha/check",
             WebConstants.API_PREFIX + "/public/files/*/preview",

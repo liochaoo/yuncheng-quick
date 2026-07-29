@@ -1,6 +1,7 @@
 package com.yuncheng.system.role.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yuncheng.common.constant.BuiltInUserIds;
 import com.yuncheng.common.constant.SystemRoleCodes;
 import com.yuncheng.common.context.CurrentUserContext;
 import com.yuncheng.framework.web.exception.PlatformException;
@@ -177,12 +178,16 @@ public class UserRoleService {
     }
 
     public void removeUsersFromRole(Long roleId, Collection<Long> userIds) {
+        protectBuiltInAdministratorRoleRemoval(roleId, userIds);
         userRoleMapper.delete(new LambdaQueryWrapper<SystemUserRole>()
                 .eq(SystemUserRole::getRoleId, roleId)
                 .in(SystemUserRole::getUserId, userIds));
     }
 
     public void deleteByUserId(Long userId) {
+        if (BuiltInUserIds.ADMINISTRATOR == userId) {
+            throw PlatformException.conflict("初始管理员账号不能删除");
+        }
         userRoleMapper.delete(new LambdaQueryWrapper<SystemUserRole>()
                 .eq(SystemUserRole::getUserId, userId));
     }
@@ -195,11 +200,24 @@ public class UserRoleService {
         if (superRole == null || targetIds.contains(superRole.getId())) {
             return;
         }
+        if (BuiltInUserIds.ADMINISTRATOR == userId) {
+            throw PlatformException.conflict("初始管理员必须保留超级管理员角色");
+        }
         if (currentUserContext.getUserId().equals(userId)) {
             throw PlatformException.conflict("不能移除自己当前使用的超级管理员角色");
         }
         if (userMapper.countEnabledUsersByRoleCode(SystemRoleCodes.SUPER_ADMIN, userId) == 0) {
             throw PlatformException.conflict("系统必须至少保留一个启用的超级管理员");
+        }
+    }
+
+    private void protectBuiltInAdministratorRoleRemoval(Long roleId, Collection<Long> userIds) {
+        if (userIds == null || !userIds.contains(BuiltInUserIds.ADMINISTRATOR)) {
+            return;
+        }
+        SystemRole role = roleQueryService.requireRole(roleId);
+        if (SystemRoleCodes.SUPER_ADMIN.equals(role.getRoleCode())) {
+            throw PlatformException.conflict("初始管理员必须保留超级管理员角色");
         }
     }
 

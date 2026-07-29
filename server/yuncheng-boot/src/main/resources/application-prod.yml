@@ -97,6 +97,9 @@ dromara:
         bucket-name: ${PLATFORM_FILE_ALIYUN_OSS_BUCKET_NAME:change-me}
 
 platform:
+  experience:
+    # 体验环境标识仅用于前端提供基础操作保护，不作为接口安全边界。
+    enabled: ${PLATFORM_EXPERIENCE_ENABLED:false}
   auth:
     jwt:
       # JWT 签名密钥必须通过环境变量提供，且长度不能少于 32 字节。

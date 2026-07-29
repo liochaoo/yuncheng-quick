@@ -57,6 +57,11 @@ export namespace AuthApi {
     password: PasswordPolicy;
   }
 
+  /** 当前部署环境的公开体验配置。 */
+  export interface ExperienceConfig {
+    experienceEnabled: boolean;
+  }
+
   /** 新密码输入规则 */
   export interface PasswordPolicy {
     maxLength: number;
@@ -74,6 +79,13 @@ export namespace AuthApi {
 /** 获取公开的安全策略。 */
 export async function getSecurityPolicyApi() {
   return authRequestClient.get<AuthApi.SecurityPolicy>('/auth/security-policy');
+}
+
+/** 获取当前部署环境的公开体验配置。 */
+export async function getExperienceConfigApi() {
+  return authRequestClient.get<AuthApi.ExperienceConfig>(
+    '/auth/experience-config',
+  );
 }
 
 /**

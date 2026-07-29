@@ -1,6 +1,7 @@
 package com.yuncheng.system.user.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yuncheng.common.constant.BuiltInUserIds;
 import com.yuncheng.common.constant.SystemRoleCodes;
 import com.yuncheng.common.context.CurrentUserContext;
 import com.yuncheng.framework.web.exception.PlatformException;
@@ -202,6 +203,9 @@ public class UserCommandService implements SystemUserCommandApi {
         if (Boolean.TRUE.equals(user.getEnabled()) == enabled) {
             return;
         }
+        if (!enabled && BuiltInUserIds.ADMINISTRATOR == userId) {
+            throw PlatformException.conflict("初始管理员账号不能停用");
+        }
         if (!enabled && currentUserContext.getUserId().equals(userId)) {
             throw PlatformException.conflict("不能停用当前登录用户");
         }
@@ -217,6 +221,7 @@ public class UserCommandService implements SystemUserCommandApi {
     @Transactional
     public void delete(Long userId) {
         userQueryService.requireUser(userId);
+        requireNotBuiltInAdministrator(userId);
         userAccessService.requireCanManage(userId);
         if (currentUserContext.getUserId().equals(userId)) {
             throw PlatformException.conflict("不能删除当前登录用户");
@@ -231,8 +236,17 @@ public class UserCommandService implements SystemUserCommandApi {
 
     @Transactional
     public void batchDelete(List<Long> userIds) {
+        if (userIds.contains(BuiltInUserIds.ADMINISTRATOR)) {
+            throw PlatformException.conflict("初始管理员账号不能删除");
+        }
         for (Long userId : userIds.stream().distinct().toList()) {
             delete(userId);
+        }
+    }
+
+    private void requireNotBuiltInAdministrator(Long userId) {
+        if (BuiltInUserIds.ADMINISTRATOR == userId) {
+            throw PlatformException.conflict("初始管理员账号不能删除");
         }
     }
 
