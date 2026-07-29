@@ -4,7 +4,7 @@ interface RequestConfigLike {
 }
 
 const EXPERIENCE_ENABLED_KEY = 'yc-quick-experience-enabled';
-const FORBIDDEN_MESSAGE = '体验环境不允许修改密码、编辑菜单或删除菜单';
+const FORBIDDEN_MESSAGE = '当前体验环境不允许该操作';
 
 interface ForbiddenApiRule {
   method: string;
