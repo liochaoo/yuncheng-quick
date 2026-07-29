@@ -1,6 +1,8 @@
 spring:
   application:
     name: yuncheng-quick-server
+  flyway:
+    enabled: ${SPRING_FLYWAY_ENABLED:true}
   lifecycle:
     timeout-per-shutdown-phase: 30s
   datasource:

@@ -59,9 +59,10 @@ yuncheng-quick
 │   ├── yuncheng-framework/    # Web、安全、缓存、文件等基础设施
 │   ├── yuncheng-system/       # 用户、角色、菜单、权限等系统模块
 │   ├── yuncheng-init/         # 系统初始化
-│   ├── yuncheng-demo/         # 开发演示能力
+│   ├── yuncheng-demo/         # 开发演示能力，应用默认不加载
 │   └── yuncheng-boot/         # 应用启动模块
 ├── web/                       # Vben Admin 前端工作区
+├── database/                  # 按版本发布的数据库脚本
 ├── docs/                      # 项目文档
 ├── LICENSE                    # Apache License 2.0
 ├── NOTICE                     # 项目版权与归属声明
@@ -99,6 +100,16 @@ CREATE DATABASE yuncheng_quick
 - Redis 密码：空
 
 可通过 `DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`REDIS_HOST`、`REDIS_PORT` 和 `REDIS_PASSWORD` 等环境变量覆盖。
+
+Flyway 默认开启，后端首次连接空数据库时会自动创建表结构和基线数据，不需要手动导入 SQL。
+
+如需自行管理数据库脚本，可以设置：
+
+```text
+SPRING_FLYWAY_ENABLED=false
+```
+
+关闭 Flyway 后，请按版本使用 [`database`](database/README.md) 中的全量或增量脚本。
 
 ### 2. 启动后端
 
@@ -156,6 +167,18 @@ data/files
 - 生产 Profile 启动前必须配置 `DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`PLATFORM_AUTH_JWT_SECRET` 和 `PLATFORM_INIT_ADMIN_PASSWORD`
 - Redis、邮件和对象存储凭据应根据部署环境单独配置
 - 不要将真实密码、Token、密钥或生产配置提交到仓库
+
+## 品牌与二次开发配置
+
+页面品牌和部署相关标识集中在配置文件中，普通的品牌替换不需要修改业务源码：
+
+- 前端应用名称、登录标题、登录说明和版权名称：`web/apps/web-ele/public/brand-config.json`
+- 前端缓存和本地存储命名空间：`web/apps/web-ele/.env`
+- 后端应用名称、JWT 签发者和接收方、Cookie 名称、Redis Key 前缀、验证码前缀及邮件发件人名称：`server/yuncheng-boot/src/main/resources/application-dev.yml` 和 `application-prod.yml`
+
+`brand-config.json` 是运行时静态配置，修改后重新部署该文件即可。前端 `.env` 属于构建配置，修改后需要重新构建前端；后端 YML 修改后需要重新启动应用。
+
+Java 包名、Maven 模块名、前端工程包名和仓库名称属于项目工程标识，可以根据二次开发范围决定是否调整。
 
 ## 设计文档
 
