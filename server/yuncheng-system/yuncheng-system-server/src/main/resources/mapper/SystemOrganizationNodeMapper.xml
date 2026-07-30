@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuncheng.system.organization.mapper.SystemOrganizationNodeMapper">
+
+    <sql id="organizationNodeColumns">
+        id, parent_id, node_type, node_code, node_name, path_ids, full_path,
+        depth, sort_order, description, created_at, created_by, updated_at, updated_by
+    </sql>
+
+    <select id="selectByIdForUpdate"
+            resultType="com.yuncheng.system.organization.entity.SystemOrganizationNode">
+        SELECT <include refid="organizationNodeColumns"/>
+        FROM system_organization_node
+        WHERE id = #{nodeId}
+        FOR UPDATE
+    </select>
+
+    <select id="selectSubtreeForUpdate"
+            resultType="com.yuncheng.system.organization.entity.SystemOrganizationNode">
+        SELECT <include refid="organizationNodeColumns"/>
+        FROM system_organization_node
+        WHERE path_ids LIKE CONCAT(#{pathIds}, '%')
+        ORDER BY depth, id
+        FOR UPDATE
+    </select>
+
+    <update id="updateSubtreeAfterEdit">
+        UPDATE system_organization_node
+        SET node_code = CASE WHEN id = #{nodeId} THEN #{nodeCode} ELSE node_code END,
+            node_name = CASE WHEN id = #{nodeId} THEN #{nodeName} ELSE node_name END,
+            sort_order = CASE WHEN id = #{nodeId} THEN #{sortOrder} ELSE sort_order END,
+            description = CASE WHEN id = #{nodeId} THEN #{description} ELSE description END,
+            full_path = CONCAT(
+                #{newFullPath},
+                SUBSTRING(full_path, CHAR_LENGTH(#{oldFullPath}) + 1)
+            ),
+            updated_at = #{updatedAt},
+            updated_by = #{updatedBy}
+        WHERE path_ids LIKE CONCAT(#{pathIds}, '%')
+    </update>
+
+    <update id="updateSubtreeAfterMove">
+        UPDATE system_organization_node
+        SET parent_id = CASE WHEN id = #{nodeId} THEN #{newParentId} ELSE parent_id END,
+            path_ids = CONCAT(
+                #{newPathIds},
+                SUBSTRING(path_ids, CHAR_LENGTH(#{oldPathIds}) + 1)
+            ),
+            full_path = CONCAT(
+                #{newFullPath},
+                SUBSTRING(full_path, CHAR_LENGTH(#{oldFullPath}) + 1)
+            ),
+            depth = depth + #{depthDelta},
+            updated_at = #{updatedAt},
+            updated_by = #{updatedBy}
+        WHERE path_ids LIKE CONCAT(#{oldPathIds}, '%')
+    </update>
+</mapper>

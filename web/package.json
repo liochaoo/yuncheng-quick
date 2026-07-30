@@ -1,8 +1,8 @@
 {
   "name": "yuncheng-quick-web",
   "version": "0.1.0-alpha.1",
-  "private": true,
   "description": "基于 Spring Boot 4 和 Vben Admin 5.7 的企业级管理系统快速开发框架",
+  "private": true,
   "keywords": [
     "monorepo",
     "turbo",

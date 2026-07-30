@@ -32,6 +32,12 @@ VALUES
         0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0
     ),
     (
+        100000000000000200, 100000000000000100, 'MENU', '组织管理', 'SystemOrganization',
+        '/system/organization', '/system/organization/index', NULL,
+        'system:organization:query', 15, 'lucide:building-2',
+        0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0
+    ),
+    (
         100000000000000120, 100000000000000100, 'MENU', '角色管理', 'SystemRole', '/system/role',
         '/system/role/index', NULL, 'system:role:query', 20, 'lucide:user-cog',
         0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0
@@ -90,6 +96,18 @@ VALUES
      NULL, NULL, 'system:user:unlock', 50, NULL, 0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0),
     (100000000000000116, 100000000000000110, 'BUTTON', '删除用户', NULL, NULL,
      NULL, NULL, 'system:user:delete', 60, NULL, 0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0),
+    (100000000000000201, 100000000000000200, 'BUTTON', '新增组织节点', NULL, NULL,
+     NULL, NULL, 'system:organization:add', 10, NULL, 0,
+     CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0),
+    (100000000000000202, 100000000000000200, 'BUTTON', '编辑组织节点', NULL, NULL,
+     NULL, NULL, 'system:organization:edit', 20, NULL, 0,
+     CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0),
+    (100000000000000203, 100000000000000200, 'BUTTON', '移动组织节点', NULL, NULL,
+     NULL, NULL, 'system:organization:move', 30, NULL, 0,
+     CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0),
+    (100000000000000204, 100000000000000200, 'BUTTON', '删除组织节点', NULL, NULL,
+     NULL, NULL, 'system:organization:delete', 40, NULL, 0,
+     CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0),
     (100000000000000121, 100000000000000120, 'BUTTON', '新增角色', NULL, NULL,
      NULL, NULL, 'system:role:add', 10, NULL, 0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0),
     (100000000000000122, 100000000000000120, 'BUTTON', '编辑角色', NULL, NULL,
