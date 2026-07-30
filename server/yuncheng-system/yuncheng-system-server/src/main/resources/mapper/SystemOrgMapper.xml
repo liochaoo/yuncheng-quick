@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.yuncheng.system.organization.mapper.SystemOrganizationNodeMapper">
+<mapper namespace="com.yuncheng.system.organization.mapper.SystemOrgMapper">
 
-    <sql id="organizationNodeColumns">
-        id, parent_id, node_type, node_code, node_name, path_ids, full_path,
+    <sql id="orgColumns">
+        id, parent_id, org_type, org_code, org_name, path_ids, full_path,
         depth, sort_order, description, created_at, created_by, updated_at, updated_by
     </sql>
 
     <select id="selectByIdForUpdate"
-            resultType="com.yuncheng.system.organization.entity.SystemOrganizationNode">
-        SELECT <include refid="organizationNodeColumns"/>
-        FROM system_organization_node
-        WHERE id = #{nodeId}
+            resultType="com.yuncheng.system.organization.entity.SystemOrg">
+        SELECT <include refid="orgColumns"/>
+        FROM system_org
+        WHERE id = #{orgId}
         FOR UPDATE
     </select>
 
     <select id="selectSubtreeForUpdate"
-            resultType="com.yuncheng.system.organization.entity.SystemOrganizationNode">
-        SELECT <include refid="organizationNodeColumns"/>
-        FROM system_organization_node
+            resultType="com.yuncheng.system.organization.entity.SystemOrg">
+        SELECT <include refid="orgColumns"/>
+        FROM system_org
         WHERE path_ids LIKE CONCAT(#{pathIds}, '%')
         ORDER BY depth, id
         FOR UPDATE
     </select>
 
     <update id="updateSubtreeAfterEdit">
-        UPDATE system_organization_node
-        SET node_code = CASE WHEN id = #{nodeId} THEN #{nodeCode} ELSE node_code END,
-            node_name = CASE WHEN id = #{nodeId} THEN #{nodeName} ELSE node_name END,
-            sort_order = CASE WHEN id = #{nodeId} THEN #{sortOrder} ELSE sort_order END,
-            description = CASE WHEN id = #{nodeId} THEN #{description} ELSE description END,
+        UPDATE system_org
+        SET org_code = CASE WHEN id = #{orgId} THEN #{orgCode} ELSE org_code END,
+            org_name = CASE WHEN id = #{orgId} THEN #{orgName} ELSE org_name END,
+            sort_order = CASE WHEN id = #{orgId} THEN #{sortOrder} ELSE sort_order END,
+            description = CASE WHEN id = #{orgId} THEN #{description} ELSE description END,
             full_path = CONCAT(
                 #{newFullPath},
                 SUBSTRING(full_path, CHAR_LENGTH(#{oldFullPath}) + 1)
@@ -41,8 +41,8 @@
     </update>
 
     <update id="updateSubtreeAfterMove">
-        UPDATE system_organization_node
-        SET parent_id = CASE WHEN id = #{nodeId} THEN #{newParentId} ELSE parent_id END,
+        UPDATE system_org
+        SET parent_id = CASE WHEN id = #{orgId} THEN #{newParentId} ELSE parent_id END,
             path_ids = CONCAT(
                 #{newPathIds},
                 SUBSTRING(path_ids, CHAR_LENGTH(#{oldPathIds}) + 1)

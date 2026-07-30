@@ -1,10 +1,7 @@
 <script lang="ts" setup>
 import type { LoadFunction } from 'element-plus';
 
-import type {
-  OrganizationNodeOption,
-  OrganizationNodeType,
-} from '#/api/common/organization';
+import type { OrgOption, OrgType } from '#/api/common/organization';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
@@ -19,15 +16,15 @@ import {
 } from 'element-plus';
 
 import {
-  getOrganizationNodeOptionApi,
-  listOrganizationNodeOptionsApi,
-  searchOrganizationNodeOptionsApi,
+  getOrgOptionApi,
+  listOrgOptionsApi,
+  searchOrgOptionsApi,
 } from '#/api/common/organization';
 import { useLatestRequest } from '#/hooks/use-latest-request';
 
-import { organizationNodeTypeLabel } from './organization-node-options';
+import { orgTypeLabel } from './org-options';
 
-interface TreeOption extends OrganizationNodeOption {
+interface OrgTreeOption extends OrgOption {
   disabled: boolean;
   label: string;
   leaf: boolean;
@@ -40,67 +37,67 @@ const props = withDefaults(
     excludeSubtreeRootId?: string;
     modelValue?: string;
     placeholder?: string;
-    selectableTypes?: OrganizationNodeType[];
+    selectableTypes?: OrgType[];
   }>(),
   {
     clearable: true,
     disabled: false,
     excludeSubtreeRootId: undefined,
     modelValue: undefined,
-    placeholder: '请选择组织节点',
+    placeholder: '请选择组织',
     selectableTypes: () => [],
   },
 );
 
 const emit = defineEmits<{
-  change: [value?: OrganizationNodeOption];
+  change: [value?: OrgOption];
   'update:modelValue': [value?: string];
 }>();
 
-const current = ref<OrganizationNodeOption>();
+const currentOrg = ref<OrgOption>();
 const keyword = ref('');
 const page = ref(1);
 const pageSize = 10;
 const popoverVisible = ref(false);
-const searchItems = ref<OrganizationNodeOption[]>([]);
+const searchItems = ref<OrgOption[]>([]);
 const searchTotal = ref(0);
 const currentRequest = useLatestRequest();
 const searchRequest = useLatestRequest();
 const searchLoading = searchRequest.loading;
-const displayValue = computed(() => current.value?.fullPath ?? '');
+const displayValue = computed(() => currentOrg.value?.fullPath ?? '');
 const treeKey = computed(
   () =>
     `${props.selectableTypes.toSorted().join(',')}|${props.excludeSubtreeRootId ?? ''}`,
 );
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
 
-function disabledNode(node: OrganizationNodeOption) {
+function disabledOrg(org: OrgOption) {
   if (
     props.selectableTypes.length > 0 &&
-    !props.selectableTypes.includes(node.nodeType)
+    !props.selectableTypes.includes(org.orgType)
   ) {
     return true;
   }
   const excluded = props.excludeSubtreeRootId;
   return Boolean(
-    excluded && (node.id === excluded || node.ancestorIds.includes(excluded)),
+    excluded && (org.id === excluded || org.ancestorIds.includes(excluded)),
   );
 }
 
-function toTreeOption(node: OrganizationNodeOption): TreeOption {
+function toTreeOption(org: OrgOption): OrgTreeOption {
   return {
-    ...node,
-    disabled: disabledNode(node),
-    label: node.nodeName,
-    leaf: !node.hasChildren,
+    ...org,
+    disabled: disabledOrg(org),
+    label: org.orgName,
+    leaf: !org.hasChildren,
   };
 }
 
 const loadTreeNode: LoadFunction = async (treeNode, resolve) => {
   try {
-    const data = treeNode.data as OrganizationNodeOption | undefined;
+    const data = treeNode.data as OrgOption | undefined;
     const parentId = treeNode.level === 0 ? undefined : data?.id;
-    const items = await listOrganizationNodeOptionsApi(parentId);
+    const items = await listOrgOptionsApi(parentId);
     resolve(items.map((item) => toTreeOption(item)));
   } catch {
     resolve([]);
@@ -108,16 +105,14 @@ const loadTreeNode: LoadFunction = async (treeNode, resolve) => {
 };
 
 async function loadCurrent(id?: string, force = false) {
-  if (!force && id && current.value?.id === id) return;
+  if (!force && id && currentOrg.value?.id === id) return;
   currentRequest.invalidate();
-  current.value = undefined;
+  currentOrg.value = undefined;
   if (!id) {
     return;
   }
-  const result = await currentRequest.execute(() =>
-    getOrganizationNodeOptionApi(id),
-  );
-  if (result) current.value = result;
+  const result = await currentRequest.execute(() => getOrgOptionApi(id));
+  if (result) currentOrg.value = result;
 }
 
 async function search() {
@@ -129,7 +124,7 @@ async function search() {
     return;
   }
   const result = await searchRequest.execute(() =>
-    searchOrganizationNodeOptionsApi({
+    searchOrgOptionsApi({
       keyword: value,
       page: page.value,
       pageSize,
@@ -140,16 +135,16 @@ async function search() {
   searchTotal.value = result.total;
 }
 
-function choose(node: OrganizationNodeOption) {
-  if (disabledNode(node)) return;
-  current.value = node;
-  emit('update:modelValue', node.id);
-  emit('change', node);
+function choose(org: OrgOption) {
+  if (disabledOrg(org)) return;
+  currentOrg.value = org;
+  emit('update:modelValue', org.id);
+  emit('change', org);
   popoverVisible.value = false;
 }
 
 function clear() {
-  current.value = undefined;
+  currentOrg.value = undefined;
   emit('update:modelValue', undefined);
   emit('change', undefined);
 }
@@ -211,7 +206,7 @@ defineExpose({
   >
     <template #reference>
       <ElInput
-        class="organization-node-select"
+        class="org-select"
         :clearable="clearable"
         :disabled="disabled"
         :model-value="displayValue"
@@ -230,22 +225,22 @@ defineExpose({
 
       <div v-if="keyword.trim()" class="min-h-0 flex-1">
         <ElScrollbar v-loading="searchLoading" class="h-full">
-          <ElEmpty v-if="searchItems.length === 0" description="暂无匹配节点" />
+          <ElEmpty v-if="searchItems.length === 0" description="暂无匹配组织" />
           <button
             v-for="item in searchItems"
             v-else
             :key="item.id"
             class="mb-1 flex w-full items-start gap-2 rounded px-3 py-2 text-left hover:bg-accent"
-            :class="{ 'cursor-not-allowed opacity-50': disabledNode(item) }"
-            :disabled="disabledNode(item)"
+            :class="{ 'cursor-not-allowed opacity-50': disabledOrg(item) }"
+            :disabled="disabledOrg(item)"
             type="button"
             @click="choose(item)"
           >
             <ElTag effect="plain" size="small">
-              {{ organizationNodeTypeLabel(item.nodeType) }}
+              {{ orgTypeLabel(item.orgType) }}
             </ElTag>
             <span class="min-w-0 flex-1">
-              <span class="block font-medium">{{ item.nodeName }}</span>
+              <span class="block font-medium">{{ item.orgName }}</span>
               <span class="text-muted-foreground block truncate text-xs">
                 {{ item.fullPath }}
               </span>
@@ -270,9 +265,9 @@ defineExpose({
       >
         <template #default="{ data }">
           <span class="flex min-w-0 items-center gap-2">
-            <span>{{ data.nodeName }}</span>
+            <span>{{ data.orgName }}</span>
             <span class="text-muted-foreground text-xs">
-              {{ organizationNodeTypeLabel(data.nodeType) }}
+              {{ orgTypeLabel(data.orgType) }}
             </span>
           </span>
         </template>
@@ -296,7 +291,7 @@ defineExpose({
 </template>
 
 <style scoped>
-.organization-node-select {
+.org-select {
   width: 100%;
 }
 </style>

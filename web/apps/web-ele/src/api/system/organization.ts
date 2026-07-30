@@ -1,23 +1,20 @@
-import type {
-  OrganizationNodeOption,
-  OrganizationNodeType,
-} from '#/api/common/organization';
+import type { OrgOption, OrgType } from '#/api/common/organization';
 import type { PageResult } from '#/api/types';
 
 import { requestClient } from '#/api/request';
 
-export type { OrganizationNodeOption, OrganizationNodeType };
+export type { OrgOption, OrgType };
 
-export interface OrganizationNodeDetail {
+export interface OrgDetail {
   createdAt: string;
   createdBy: string;
   depth: number;
   description?: null | string;
   fullPath: string;
   id: string;
-  nodeCode: string;
-  nodeName: string;
-  nodeType: OrganizationNodeType;
+  orgCode: string;
+  orgName: string;
+  orgType: OrgType;
   parentId?: null | string;
   parentName?: null | string;
   sortOrder: number;
@@ -25,84 +22,67 @@ export interface OrganizationNodeDetail {
   updatedBy: string;
 }
 
-export interface OrganizationNodePageParams {
+export interface OrgPageParams {
   keyword?: string;
   page: number;
   pageSize: number;
 }
 
-export interface OrganizationNodeCreateRequest {
+export interface OrgCreateRequest {
   description?: string;
-  nodeCode: string;
-  nodeName: string;
-  nodeType: OrganizationNodeType;
+  orgCode: string;
+  orgName: string;
+  orgType: OrgType;
   parentId?: string;
   sortOrder: number;
 }
 
-export interface OrganizationNodeUpdateRequest {
+export interface OrgUpdateRequest {
   description?: string;
-  nodeCode: string;
-  nodeName: string;
+  orgCode: string;
+  orgName: string;
   sortOrder: number;
 }
 
-export interface OrganizationNodeMoveImpact {
+export interface OrgMoveImpact {
   newFullPath: string;
-  nodeCount: number;
+  orgCount: number;
 }
 
-export async function pageOrganizationNodesApi(
-  params: OrganizationNodePageParams,
-) {
-  return requestClient.get<PageResult<OrganizationNodeOption>>(
-    '/system/organization-nodes',
-    { params },
-  );
+export async function pageOrgsApi(params: OrgPageParams) {
+  return requestClient.get<PageResult<OrgOption>>('/system/orgs', { params });
 }
 
-export async function listOrganizationNodeChildrenApi(parentId?: string) {
-  return requestClient.get<OrganizationNodeOption[]>(
-    '/system/organization-nodes/children',
-    { params: parentId ? { parentId } : undefined },
-  );
+export async function listOrgChildrenApi(parentId?: string) {
+  return requestClient.get<OrgOption[]>('/system/orgs/children', {
+    params: parentId ? { parentId } : undefined,
+  });
 }
 
-export async function getOrganizationNodeDetailApi(id: string) {
-  return requestClient.get<OrganizationNodeDetail>(
-    `/system/organization-nodes/${id}`,
-  );
+export async function getOrgDetailApi(id: string) {
+  return requestClient.get<OrgDetail>(`/system/orgs/${id}`);
 }
 
-export async function createOrganizationNodeApi(
-  data: OrganizationNodeCreateRequest,
-) {
-  return requestClient.post<string>('/system/organization-nodes', data);
+export async function createOrgApi(data: OrgCreateRequest) {
+  return requestClient.post<string>('/system/orgs', data);
 }
 
-export async function updateOrganizationNodeApi(
-  id: string,
-  data: OrganizationNodeUpdateRequest,
-) {
-  return requestClient.put<null>(`/system/organization-nodes/${id}`, data);
+export async function updateOrgApi(id: string, data: OrgUpdateRequest) {
+  return requestClient.put<null>(`/system/orgs/${id}`, data);
 }
 
-export async function getOrganizationNodeMoveImpactApi(
-  id: string,
-  parentId?: string,
-) {
-  return requestClient.get<OrganizationNodeMoveImpact>(
-    `/system/organization-nodes/${id}/move-impact`,
-    { params: parentId ? { parentId } : undefined },
-  );
+export async function getOrgMoveImpactApi(id: string, parentId?: string) {
+  return requestClient.get<OrgMoveImpact>(`/system/orgs/${id}/move-impact`, {
+    params: parentId ? { parentId } : undefined,
+  });
 }
 
-export async function moveOrganizationNodeApi(id: string, parentId?: string) {
-  return requestClient.put<null>(`/system/organization-nodes/${id}/parent`, {
+export async function moveOrgApi(id: string, parentId?: string) {
+  return requestClient.put<null>(`/system/orgs/${id}/parent`, {
     parentId,
   });
 }
 
-export async function deleteOrganizationNodeApi(id: string) {
-  return requestClient.delete<null>(`/system/organization-nodes/${id}`);
+export async function deleteOrgApi(id: string) {
+  return requestClient.delete<null>(`/system/orgs/${id}`);
 }

@@ -1,6 +1,6 @@
 export {
-  ORGANIZATION_NODE_TYPE_OPTIONS,
-  ORGANIZATION_NODE_TYPE_SELECT_OPTIONS,
-  organizationNodeTypeLabel,
-} from './organization-node-options';
-export { default as OrganizationNodeSelect } from './organization-node-select.vue';
+  ORG_TYPE_OPTIONS,
+  ORG_TYPE_SELECT_OPTIONS,
+  orgTypeLabel,
+} from './org-options';
+export { default as OrgSelect } from './org-select.vue';

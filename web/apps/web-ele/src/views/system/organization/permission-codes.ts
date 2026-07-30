@@ -1,4 +1,4 @@
-export const ORGANIZATION_PERMISSION_CODES = {
+export const ORG_PERMISSION_CODES = {
   ADD: 'system:organization:add',
   DELETE: 'system:organization:delete',
   EDIT: 'system:organization:edit',

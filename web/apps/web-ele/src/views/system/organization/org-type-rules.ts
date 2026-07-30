@@ -1,9 +1,7 @@
-import type { OrganizationNodeType } from '#/api/common/organization';
+import type { OrgType } from '#/api/common/organization';
 
-export function allowedParentTypes(
-  nodeType: OrganizationNodeType,
-): OrganizationNodeType[] {
-  switch (nodeType) {
+export function allowedParentTypes(orgType: OrgType): OrgType[] {
+  switch (orgType) {
     case 'DEPARTMENT': {
       return ['ORGANIZATION', 'DEPARTMENT'];
     }
@@ -16,9 +14,7 @@ export function allowedParentTypes(
   }
 }
 
-export function defaultChildType(
-  parentType: OrganizationNodeType,
-): OrganizationNodeType {
+export function defaultChildType(parentType: OrgType): OrgType {
   switch (parentType) {
     case 'DEPARTMENT':
     case 'GROUP': {
@@ -30,9 +26,6 @@ export function defaultChildType(
   }
 }
 
-export function parentAllowsChild(
-  parentType: OrganizationNodeType,
-  childType: OrganizationNodeType,
-) {
+export function parentAllowsChild(parentType: OrgType, childType: OrgType) {
   return allowedParentTypes(childType).includes(parentType);
 }

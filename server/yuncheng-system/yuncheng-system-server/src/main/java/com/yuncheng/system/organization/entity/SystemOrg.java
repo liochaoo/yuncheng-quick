@@ -2,16 +2,16 @@ package com.yuncheng.system.organization.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.yuncheng.framework.mybatis.entity.BaseEntity;
-import com.yuncheng.system.api.organization.SystemOrganizationNodeType;
+import com.yuncheng.system.api.organization.SystemOrgType;
 
 /** 系统组织、部门或小组节点。 */
-@TableName("system_organization_node")
-public class SystemOrganizationNode extends BaseEntity {
+@TableName("system_org")
+public class SystemOrg extends BaseEntity {
 
     private Long parentId;
-    private SystemOrganizationNodeType nodeType;
-    private String nodeCode;
-    private String nodeName;
+    private SystemOrgType orgType;
+    private String orgCode;
+    private String orgName;
     private String pathIds;
     private String fullPath;
     private Integer depth;
@@ -26,28 +26,28 @@ public class SystemOrganizationNode extends BaseEntity {
         this.parentId = parentId;
     }
 
-    public SystemOrganizationNodeType getNodeType() {
-        return nodeType;
+    public SystemOrgType getOrgType() {
+        return orgType;
     }
 
-    public void setNodeType(SystemOrganizationNodeType nodeType) {
-        this.nodeType = nodeType;
+    public void setOrgType(SystemOrgType orgType) {
+        this.orgType = orgType;
     }
 
-    public String getNodeCode() {
-        return nodeCode;
+    public String getOrgCode() {
+        return orgCode;
     }
 
-    public void setNodeCode(String nodeCode) {
-        this.nodeCode = nodeCode;
+    public void setOrgCode(String orgCode) {
+        this.orgCode = orgCode;
     }
 
-    public String getNodeName() {
-        return nodeName;
+    public String getOrgName() {
+        return orgName;
     }
 
-    public void setNodeName(String nodeName) {
-        this.nodeName = nodeName;
+    public void setOrgName(String orgName) {
+        this.orgName = orgName;
     }
 
     public String getPathIds() {

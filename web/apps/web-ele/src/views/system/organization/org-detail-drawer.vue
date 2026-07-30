@@ -1,31 +1,30 @@
 <script lang="ts" setup>
-import type { OrganizationNodeDetail } from '#/api/system/organization';
+import type { OrgDetail } from '#/api/system/organization';
 import type { DetailTableItem } from '#/components/detail/detail-table.types';
 
 import { computed } from 'vue';
 
 import { formatDateTime } from '@vben/utils';
 
-import { getOrganizationNodeDetailApi } from '#/api/system/organization';
+import { getOrgDetailApi } from '#/api/system/organization';
 import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
 import EnumTag from '#/components/display/enum-tag.vue';
-import { ORGANIZATION_NODE_TYPE_OPTIONS } from '#/components/organization';
+import { ORG_TYPE_OPTIONS } from '#/components/organization';
 import { useBusinessDetailDrawer } from '#/hooks/use-business-detail-drawer';
 import { BUSINESS_FORM_DRAWER_WIDTH } from '#/types/business-form';
 
-const { detail, Drawer, loading } =
-  useBusinessDetailDrawer<OrganizationNodeDetail>({
-    load: getOrganizationNodeDetailApi,
-  });
+const { detail, Drawer, loading } = useBusinessDetailDrawer<OrgDetail>({
+  load: getOrgDetailApi,
+});
 
 const basicItems = computed<DetailTableItem[]>(() => [
-  { key: 'nodeType', label: '节点类型' },
-  { key: 'nodeName', label: '节点名称', value: detail.value?.nodeName },
-  { key: 'nodeCode', label: '节点编码', value: detail.value?.nodeCode },
+  { key: 'orgType', label: '组织类型' },
+  { key: 'orgName', label: '组织名称', value: detail.value?.orgName },
+  { key: 'orgCode', label: '组织编码', value: detail.value?.orgCode },
   {
     key: 'parentName',
-    label: '上级节点',
+    label: '上级组织',
     value: detail.value?.parentName ?? '顶级组织',
   },
   {
@@ -62,16 +61,13 @@ const recordItems = computed<DetailTableItem[]>(() => [
   <Drawer
     :class="BUSINESS_FORM_DRAWER_WIDTH.medium"
     :loading="loading"
-    title="组织节点详情"
+    title="组织详情"
   >
     <div v-if="detail" class="px-4">
       <DetailSection title="基础信息">
         <DetailTable :items="basicItems">
-          <template #nodeType>
-            <EnumTag
-              :options="ORGANIZATION_NODE_TYPE_OPTIONS"
-              :value="detail.nodeType"
-            />
+          <template #orgType>
+            <EnumTag :options="ORG_TYPE_OPTIONS" :value="detail.orgType" />
           </template>
         </DetailTable>
       </DetailSection>

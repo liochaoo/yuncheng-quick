@@ -5,16 +5,16 @@ import com.yuncheng.framework.security.authorization.annotation.RequirePermissio
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.framework.web.response.ApiResponse;
-import com.yuncheng.system.organization.constant.OrganizationPermissionCodes;
-import com.yuncheng.system.organization.dto.OrganizationNodeCreateRequest;
-import com.yuncheng.system.organization.dto.OrganizationNodeDetail;
-import com.yuncheng.system.organization.dto.OrganizationNodeItem;
-import com.yuncheng.system.organization.dto.OrganizationNodeMoveImpact;
-import com.yuncheng.system.organization.dto.OrganizationNodeMoveRequest;
-import com.yuncheng.system.organization.dto.OrganizationNodePageQuery;
-import com.yuncheng.system.organization.dto.OrganizationNodeUpdateRequest;
-import com.yuncheng.system.organization.service.OrganizationCommandService;
-import com.yuncheng.system.organization.service.OrganizationQueryService;
+import com.yuncheng.system.organization.constant.OrgPermissionCodes;
+import com.yuncheng.system.organization.dto.OrgCreateRequest;
+import com.yuncheng.system.organization.dto.OrgDetail;
+import com.yuncheng.system.organization.dto.OrgItem;
+import com.yuncheng.system.organization.dto.OrgMoveImpact;
+import com.yuncheng.system.organization.dto.OrgMoveRequest;
+import com.yuncheng.system.organization.dto.OrgPageQuery;
+import com.yuncheng.system.organization.dto.OrgUpdateRequest;
+import com.yuncheng.system.organization.service.OrgCommandService;
+import com.yuncheng.system.organization.service.OrgQueryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -29,34 +29,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 组织节点管理接口。 */
+/** 组织管理接口。 */
 @Validated
 @RestController
-@RequestMapping(WebConstants.API_PREFIX + "/system/organization-nodes")
-public class OrganizationManagementController {
+@RequestMapping(WebConstants.API_PREFIX + "/system/orgs")
+public class OrgManagementController {
 
-    private final OrganizationQueryService queryService;
-    private final OrganizationCommandService commandService;
+    private final OrgQueryService queryService;
+    private final OrgCommandService commandService;
 
-    public OrganizationManagementController(
-            OrganizationQueryService queryService,
-            OrganizationCommandService commandService
+    public OrgManagementController(
+            OrgQueryService queryService,
+            OrgCommandService commandService
     ) {
         this.queryService = queryService;
         this.commandService = commandService;
     }
 
     @GetMapping
-    @RequirePermission(OrganizationPermissionCodes.QUERY)
-    public ApiResponse<PageResult<OrganizationNodeItem>> page(
-            @Valid OrganizationNodePageQuery query
+    @RequirePermission(OrgPermissionCodes.QUERY)
+    public ApiResponse<PageResult<OrgItem>> page(
+            @Valid OrgPageQuery query
     ) {
         return ApiResponse.success(queryService.page(query));
     }
 
     @GetMapping("/children")
-    @RequirePermission(OrganizationPermissionCodes.QUERY)
-    public ApiResponse<List<OrganizationNodeItem>> children(
+    @RequirePermission(OrgPermissionCodes.QUERY)
+    public ApiResponse<List<OrgItem>> children(
             @RequestParam(required = false)
             @Positive(message = "上级组织主键必须大于 0")
             Long parentId
@@ -65,32 +65,32 @@ public class OrganizationManagementController {
     }
 
     @GetMapping("/{id}")
-    @RequirePermission(OrganizationPermissionCodes.QUERY)
-    public ApiResponse<OrganizationNodeDetail> detail(@PathVariable @Positive Long id) {
+    @RequirePermission(OrgPermissionCodes.QUERY)
+    public ApiResponse<OrgDetail> detail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.detail(id));
     }
 
     @PostMapping
-    @RequirePermission(OrganizationPermissionCodes.ADD)
-    @OperationLog("新增组织节点")
-    public ApiResponse<String> create(@Valid @RequestBody OrganizationNodeCreateRequest request) {
+    @RequirePermission(OrgPermissionCodes.ADD)
+    @OperationLog("新增组织")
+    public ApiResponse<String> create(@Valid @RequestBody OrgCreateRequest request) {
         return ApiResponse.success(commandService.create(request).toString());
     }
 
     @PutMapping("/{id}")
-    @RequirePermission(OrganizationPermissionCodes.EDIT)
-    @OperationLog("编辑组织节点")
+    @RequirePermission(OrgPermissionCodes.EDIT)
+    @OperationLog("编辑组织")
     public ApiResponse<Void> update(
             @PathVariable @Positive Long id,
-            @Valid @RequestBody OrganizationNodeUpdateRequest request
+            @Valid @RequestBody OrgUpdateRequest request
     ) {
         commandService.update(id, request);
         return ApiResponse.success(null);
     }
 
     @GetMapping("/{id}/move-impact")
-    @RequirePermission(OrganizationPermissionCodes.MOVE)
-    public ApiResponse<OrganizationNodeMoveImpact> moveImpact(
+    @RequirePermission(OrgPermissionCodes.MOVE)
+    public ApiResponse<OrgMoveImpact> moveImpact(
             @PathVariable @Positive Long id,
             @RequestParam(required = false)
             @Positive(message = "上级组织主键必须大于 0")
@@ -100,19 +100,19 @@ public class OrganizationManagementController {
     }
 
     @PutMapping("/{id}/parent")
-    @RequirePermission(OrganizationPermissionCodes.MOVE)
-    @OperationLog("移动组织节点")
+    @RequirePermission(OrgPermissionCodes.MOVE)
+    @OperationLog("移动组织")
     public ApiResponse<Void> move(
             @PathVariable @Positive Long id,
-            @Valid @RequestBody OrganizationNodeMoveRequest request
+            @Valid @RequestBody OrgMoveRequest request
     ) {
         commandService.move(id, request);
         return ApiResponse.success(null);
     }
 
     @DeleteMapping("/{id}")
-    @RequirePermission(OrganizationPermissionCodes.DELETE)
-    @OperationLog("删除组织节点")
+    @RequirePermission(OrgPermissionCodes.DELETE)
+    @OperationLog("删除组织")
     public ApiResponse<Void> delete(@PathVariable @Positive Long id) {
         commandService.delete(id);
         return ApiResponse.success(null);

@@ -1,27 +1,27 @@
 package com.yuncheng.system.organization.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.yuncheng.system.organization.entity.SystemOrganizationNode;
+import com.yuncheng.system.organization.entity.SystemOrg;
 import java.time.Instant;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-/** 系统组织节点数据库访问。 */
+/** 系统组织数据库访问。 */
 @Mapper
-public interface SystemOrganizationNodeMapper extends BaseMapper<SystemOrganizationNode> {
+public interface SystemOrgMapper extends BaseMapper<SystemOrg> {
 
-    SystemOrganizationNode selectByIdForUpdate(@Param("nodeId") Long nodeId);
+    SystemOrg selectByIdForUpdate(@Param("orgId") Long orgId);
 
-    List<SystemOrganizationNode> selectSubtreeForUpdate(@Param("pathIds") String pathIds);
+    List<SystemOrg> selectSubtreeForUpdate(@Param("pathIds") String pathIds);
 
     int updateSubtreeAfterEdit(
-            @Param("nodeId") Long nodeId,
+            @Param("orgId") Long orgId,
             @Param("pathIds") String pathIds,
             @Param("oldFullPath") String oldFullPath,
             @Param("newFullPath") String newFullPath,
-            @Param("nodeCode") String nodeCode,
-            @Param("nodeName") String nodeName,
+            @Param("orgCode") String orgCode,
+            @Param("orgName") String orgName,
             @Param("sortOrder") Integer sortOrder,
             @Param("description") String description,
             @Param("updatedAt") Instant updatedAt,
@@ -29,7 +29,7 @@ public interface SystemOrganizationNodeMapper extends BaseMapper<SystemOrganizat
     );
 
     int updateSubtreeAfterMove(
-            @Param("nodeId") Long nodeId,
+            @Param("orgId") Long orgId,
             @Param("oldPathIds") String oldPathIds,
             @Param("newPathIds") String newPathIds,
             @Param("oldFullPath") String oldFullPath,
