@@ -113,6 +113,7 @@ defineExpose({
 
   <OrgSelectionDialog
     v-model="dialogVisible"
+    :clearable="clearable"
     :exclude-subtree-root-id="excludeSubtreeRootId"
     :permission-scope="permissionScope"
     :selectable-types="selectableTypes"

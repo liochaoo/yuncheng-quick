@@ -50,6 +50,13 @@ export class VxeGridApi<
 
   private isMounted = false;
 
+  private pendingProxyQuery: null | {
+    code: 'query' | 'reload';
+    params: Record<string, any>;
+  } = null;
+
+  private proxyQueryTask: null | Promise<void> = null;
+
   private stateHandler: StateHandler;
 
   constructor(options: VxeGridProps<T, D, P> = {} as VxeGridProps<T, D, P>) {
@@ -116,19 +123,11 @@ export class VxeGridApi<
   }
 
   async query(params: Record<string, any> = {}) {
-    try {
-      await this.grid.commitProxy('query', toRaw(params));
-    } catch (error) {
-      console.error('Error occurred while querying:', error);
-    }
+    await this.enqueueProxyQuery('query', params);
   }
 
   async reload(params: Record<string, any> = {}) {
-    try {
-      await this.grid.commitProxy('reload', toRaw(params));
-    } catch (error) {
-      console.error('Error occurred while reloading:', error);
-    }
+    await this.enqueueProxyQuery('reload', params);
   }
 
   /**
@@ -180,5 +179,30 @@ export class VxeGridApi<
     this.isMounted = false;
     this.stateHandler.reset();
     this.viewedRowHelper = null;
+  }
+
+  private async drainProxyQueries() {
+    while (this.pendingProxyQuery) {
+      const request = this.pendingProxyQuery;
+      this.pendingProxyQuery = null;
+      try {
+        await this.grid.commitProxy(request.code, request.params);
+      } catch (error) {
+        console.error('Error occurred while querying:', error);
+      }
+    }
+  }
+
+  private enqueueProxyQuery(
+    code: 'query' | 'reload',
+    params: Record<string, any>,
+  ) {
+    this.pendingProxyQuery = { code, params: { ...toRaw(params) } };
+    if (!this.proxyQueryTask) {
+      this.proxyQueryTask = this.drainProxyQueries().finally(() => {
+        this.proxyQueryTask = null;
+      });
+    }
+    return this.proxyQueryTask;
   }
 }

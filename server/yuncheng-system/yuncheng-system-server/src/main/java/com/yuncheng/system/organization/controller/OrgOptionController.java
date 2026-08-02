@@ -2,12 +2,11 @@ package com.yuncheng.system.organization.controller;
 
 import com.yuncheng.framework.security.authorization.annotation.RequirePermission;
 import com.yuncheng.framework.web.constant.WebConstants;
-import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.system.organization.dto.OrgContextItem;
 import com.yuncheng.system.organization.dto.OrgIdsRequest;
 import com.yuncheng.system.organization.dto.OrgItem;
-import com.yuncheng.system.organization.dto.OrgPageQuery;
+import com.yuncheng.system.organization.dto.OrgListQuery;
 import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.user.constant.UserPermissionCodes;
 import jakarta.validation.Valid;
@@ -22,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 已登录业务模块消费组织的公共接口。 */
+/** 用户管理权限场景使用的组织选项接口。 */
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/orgs")
@@ -46,10 +45,10 @@ public class OrgOptionController {
 
     @GetMapping("/search")
     @RequirePermission(UserPermissionCodes.QUERY)
-    public ApiResponse<PageResult<OrgItem>> search(
-            @Valid OrgPageQuery query
+    public ApiResponse<List<OrgItem>> search(
+            @Valid OrgListQuery query
     ) {
-        return ApiResponse.success(queryService.page(query));
+        return ApiResponse.success(queryService.list(query));
     }
 
     @GetMapping("/{id}")

@@ -53,6 +53,10 @@ interface UserSearchValues {
   username?: string;
 }
 
+function emptyUserPage(page: number, pageSize: number) {
+  return { items: [], page, pageSize, total: 0 };
+}
+
 const { hasAccessByCodes } = useAccess();
 const userStore = useUserStore();
 const isSuperAdmin = useIsSuperAdmin();
@@ -176,19 +180,38 @@ const [Grid, gridApi] = useVbenVxeGrid({
         query: async (
           { page }: { page: { currentPage: number; pageSize: number } },
           values: UserSearchValues,
-        ) =>
-          pageUsersApi({
-            enabled: values.enabled,
-            orgId: selectedOrgId.value,
-            orgRelationType: selectedOrgId.value
-              ? orgRelationType.value
-              : undefined,
-            orgScope: selectedOrgId.value ? orgScope.value : undefined,
+        ) => {
+          const requestOrgId = selectedOrgId.value;
+          const requestOrgScope = requestOrgId ? orgScope.value : undefined;
+          const requestOrgRelationType = requestOrgId
+            ? orgRelationType.value
+            : undefined;
+          const requestEnabled = values.enabled;
+          const requestRealName = values.realName?.trim() || undefined;
+          const requestUsername = values.username?.trim() || undefined;
+          const result = await pageUsersApi({
+            enabled: requestEnabled,
+            orgId: requestOrgId,
+            orgRelationType: requestOrgRelationType,
+            orgScope: requestOrgScope,
             page: page.currentPage,
             pageSize: page.pageSize,
-            realName: values.realName?.trim() || undefined,
-            username: values.username?.trim() || undefined,
-          }),
+            realName: requestRealName,
+            username: requestUsername,
+          });
+          const latestValues = (gridApi.formApi.getLatestSubmissionValues() ??
+            {}) as UserSearchValues;
+          return requestOrgId === selectedOrgId.value &&
+            requestOrgScope ===
+              (selectedOrgId.value ? orgScope.value : undefined) &&
+            requestOrgRelationType ===
+              (selectedOrgId.value ? orgRelationType.value : undefined) &&
+            requestEnabled === latestValues.enabled &&
+            requestRealName === (latestValues.realName?.trim() || undefined) &&
+            requestUsername === (latestValues.username?.trim() || undefined)
+            ? result
+            : emptyUserPage(page.currentPage, page.pageSize);
+        },
       },
     },
     rowConfig: { keyField: 'id' },
@@ -209,7 +232,11 @@ function refresh() {
 function selectOrg(org?: OrgOption) {
   selectedOrg.value = org;
   selectedOrgId.value = org?.id;
-  gridApi.query();
+  gridApi.reload();
+}
+
+function changeOrgFilter() {
+  gridApi.reload();
 }
 
 function openForm(mode: BusinessFormMode, row?: UserListItem) {
@@ -345,14 +372,18 @@ function batchRemove() {
           v-if="selectedOrgId"
           class="grid grid-cols-2 gap-2 border-t p-3"
         >
-          <ElSelect v-model="orgScope" aria-label="归属范围" @change="refresh">
+          <ElSelect
+            v-model="orgScope"
+            aria-label="归属范围"
+            @change="changeOrgFilter"
+          >
             <ElOption label="直属" value="DIRECT" />
             <ElOption label="包含下级" value="INCLUDE_DESCENDANTS" />
           </ElSelect>
           <ElSelect
             v-model="orgRelationType"
             aria-label="归属类型"
-            @change="refresh"
+            @change="changeOrgFilter"
           >
             <ElOption label="全部归属" value="ALL" />
             <ElOption label="仅主归属" value="PRIMARY" />

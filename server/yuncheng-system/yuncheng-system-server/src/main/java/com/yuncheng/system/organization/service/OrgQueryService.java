@@ -1,11 +1,8 @@
 package com.yuncheng.system.organization.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yuncheng.common.constant.BuiltInOrgIds;
 import com.yuncheng.framework.web.exception.PlatformException;
-import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.system.api.organization.SystemOrgInfo;
 import com.yuncheng.system.api.organization.SystemOrgQueryApi;
 import com.yuncheng.system.api.organization.SystemOrgType;
@@ -14,7 +11,6 @@ import com.yuncheng.system.organization.dto.OrgDetail;
 import com.yuncheng.system.organization.dto.OrgIdentity;
 import com.yuncheng.system.organization.dto.OrgItem;
 import com.yuncheng.system.organization.dto.OrgListQuery;
-import com.yuncheng.system.organization.dto.OrgPageQuery;
 import com.yuncheng.system.organization.entity.SystemOrg;
 import com.yuncheng.system.organization.mapper.SystemOrgMapper;
 import java.util.Arrays;
@@ -36,18 +32,6 @@ public class OrgQueryService implements SystemOrgQueryApi {
 
     public OrgQueryService(SystemOrgMapper orgMapper) {
         this.orgMapper = orgMapper;
-    }
-
-    public PageResult<OrgItem> page(OrgPageQuery query) {
-        String keyword = normalizedText(query.getKeyword());
-        LambdaQueryWrapper<SystemOrg> wrapper = queryWrapper(keyword);
-        wrapper.orderByAsc(SystemOrg::getSortOrder, SystemOrg::getId);
-        IPage<SystemOrg> page = orgMapper.selectPage(
-                new Page<>(query.getPage(), query.getPageSize()),
-                wrapper
-        );
-        List<OrgItem> items = toItems(page.getRecords());
-        return PageResult.of(items, page.getTotal(), query);
     }
 
     public List<OrgItem> list(OrgListQuery query) {

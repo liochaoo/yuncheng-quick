@@ -3,12 +3,14 @@ import { ElButton, ElDialog, ElScrollbar } from 'element-plus';
 
 withDefaults(
   defineProps<{
+    clearable?: boolean;
     loading?: boolean;
     selectedCount: number;
     title: string;
     width?: string;
   }>(),
   {
+    clearable: true,
     loading: false,
     width: 'clamp(860px, 76vw, 1180px)',
   },
@@ -50,6 +52,7 @@ const visible = defineModel<boolean>({ required: true });
         <header class="flex items-center justify-between border-b px-3 py-2.5">
           <span class="font-medium">已选择 {{ selectedCount }} 项</span>
           <ElButton
+            v-if="clearable"
             :disabled="loading"
             link
             type="primary"

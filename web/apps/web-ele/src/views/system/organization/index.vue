@@ -5,8 +5,6 @@ import type { OrgOption } from '#/api/system/organization';
 import type { RowAction } from '#/components/table/row-actions.types';
 import type { BusinessFormMode } from '#/types/business-form';
 
-import { ref } from 'vue';
-
 import { useAccess } from '@vben/access';
 import { Page, useVbenDrawer } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
@@ -43,7 +41,6 @@ const canAccess = {
   edit: hasAccessByCodes([ORG_PERMISSION_CODES.EDIT]),
   move: hasAccessByCodes([ORG_PERMISSION_CODES.MOVE]),
 };
-const searching = ref(false);
 const { runConfirmAction } = useConfirmAction();
 
 const [FormDrawer, formDrawerApi] = useVbenDrawer({
@@ -120,11 +117,14 @@ const [Grid, gridApi] = useVbenVxeGrid({
       ajax: {
         query: async (_params: unknown, values: OrgSearchValues) => {
           const keyword = values.keyword?.trim() || undefined;
-          searching.value = Boolean(keyword);
           const items = await listOrgsApi({
             keyword,
           });
-          return searching.value
+          const latestValues = (gridApi.formApi.getLatestSubmissionValues() ??
+            {}) as OrgSearchValues;
+          const latestKeyword = latestValues.keyword?.trim() || undefined;
+          if (keyword !== latestKeyword) return [];
+          return keyword
             ? items.map((item) => ({ ...item, hasChildren: false }))
             : items;
         },

@@ -25,7 +25,13 @@
         FOR UPDATE
     </select>
 
-    <update id="updateSubtreeAfterEdit">
+    <select id="selectMaxDepthByPathIds" resultType="java.lang.Integer">
+        SELECT MAX(depth)
+        FROM system_org
+        WHERE path_ids LIKE CONCAT(#{pathIds}, '%')
+    </select>
+
+    <update id="updateSubtreeAfterRename">
         UPDATE system_org
         SET org_code = CASE WHEN id = #{orgId} THEN #{orgCode} ELSE org_code END,
             org_name = CASE WHEN id = #{orgId} THEN #{orgName} ELSE org_name END,

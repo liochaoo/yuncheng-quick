@@ -1,5 +1,3 @@
-import type { PageResult } from '#/api/types';
-
 import { requestClient } from '#/api/request';
 
 export type OrgType = 'DEPARTMENT' | 'GROUP' | 'ORGANIZATION';
@@ -38,8 +36,6 @@ export interface OrgContextOption extends OrgOption {
 
 export interface OrgSearchParams {
   keyword: string;
-  page: number;
-  pageSize: number;
 }
 
 /** 按上级节点异步加载组织，空上级表示顶级组织。 */
@@ -49,9 +45,9 @@ export async function listOrgOptionsApi(parentId?: string) {
   });
 }
 
-/** 按名称、编码或完整路径分页搜索组织。 */
+/** 按名称、编码或完整路径搜索组织。 */
 export async function searchOrgOptionsApi(params: OrgSearchParams) {
-  return requestClient.get<PageResult<OrgOption>>('/orgs/search', { params });
+  return requestClient.get<OrgOption[]>('/orgs/search', { params });
 }
 
 /** 根据主键恢复已选组织。 */

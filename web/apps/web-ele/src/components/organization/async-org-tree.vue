@@ -5,13 +5,7 @@ import type { OrgOption } from '#/api/common/organization';
 
 import { onBeforeUnmount, ref, watch } from 'vue';
 
-import {
-  ElEmpty,
-  ElInput,
-  ElPagination,
-  ElScrollbar,
-  ElTree,
-} from 'element-plus';
+import { ElEmpty, ElInput, ElScrollbar, ElTree } from 'element-plus';
 
 import {
   listOrgOptionsApi,
@@ -45,10 +39,7 @@ const emit = defineEmits<{
 }>();
 
 const keyword = ref('');
-const page = ref(1);
-const pageSize = 20;
 const searchItems = ref<OrgOption[]>([]);
-const searchTotal = ref(0);
 const searchRequest = useLatestRequest();
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -60,14 +51,14 @@ function toTreeOption(org: OrgOption): OrgTreeOption {
   };
 }
 
-const loadTreeNode: LoadFunction = async (treeNode, resolve) => {
+const loadTreeNode: LoadFunction = async (treeNode, resolve, reject) => {
   try {
     const data = treeNode.data as OrgOption | undefined;
     const parentId = treeNode.level === 0 ? undefined : data?.id;
     const items = await listOrgOptionsApi(parentId);
     resolve(items.map((item) => toTreeOption(item)));
   } catch {
-    resolve([]);
+    reject();
   }
 };
 
@@ -81,32 +72,21 @@ async function search() {
   searchRequest.invalidate();
   if (!value) {
     searchItems.value = [];
-    searchTotal.value = 0;
     return;
   }
   const result = await searchRequest.execute(() =>
     searchOrgOptionsApi({
       keyword: value,
-      page: page.value,
-      pageSize,
     }),
   );
   if (!result) return;
-  searchItems.value = result.items;
-  searchTotal.value = result.total;
-}
-
-function changePage(value: number) {
-  page.value = value;
-  void search();
+  searchItems.value = result;
 }
 
 watch(keyword, () => {
   if (searchTimer) clearTimeout(searchTimer);
   searchRequest.invalidate();
   searchItems.value = [];
-  searchTotal.value = 0;
-  page.value = 1;
   if (!keyword.value.trim()) return;
   searchTimer = setTimeout(() => {
     searchTimer = undefined;
@@ -188,15 +168,5 @@ onBeforeUnmount(() => {
         </template>
       </ElTree>
     </div>
-
-    <ElPagination
-      v-if="keyword.trim() && searchTotal > pageSize"
-      class="justify-center"
-      layout="prev, next"
-      :current-page="page"
-      :page-size="pageSize"
-      :total="searchTotal"
-      @current-change="changePage"
-    />
   </div>
 </template>

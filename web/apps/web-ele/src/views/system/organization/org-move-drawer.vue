@@ -33,6 +33,7 @@ const emit = defineEmits<{
 
 const currentOrg = ref<OrgOption>();
 const impact = ref<OrgMoveImpact>();
+const impactParentKey = ref<string>();
 const parentId = ref<string>();
 const originalParentId = ref<string>();
 const impactRequest = useLatestRequest();
@@ -47,6 +48,10 @@ const canMoveToRoot = computed(
   () => currentOrg.value?.orgType === 'ORGANIZATION',
 );
 
+function parentKey(value?: string) {
+  return value ?? 'ROOT';
+}
+
 const [Drawer, drawerApi] = useVbenDrawer({
   async onConfirm() {
     const org = currentOrg.value;
@@ -55,7 +60,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
       ElMessage.warning('请选择不同的上级组织');
       return;
     }
-    let currentImpact = impact.value;
+    let currentImpact =
+      impactParentKey.value === parentKey(parentId.value)
+        ? impact.value
+        : undefined;
     if (!currentImpact) {
       currentImpact = await loadImpact();
     }
@@ -73,6 +81,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onOpenChange(isOpen) {
     impactRequest.invalidate();
     impact.value = undefined;
+    impactParentKey.value = undefined;
     if (!isOpen) {
       currentOrg.value = undefined;
       parentId.value = undefined;
@@ -92,15 +101,25 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
 async function loadImpact() {
   const org = currentOrg.value;
+  impact.value = undefined;
+  impactParentKey.value = undefined;
   if (!org || parentId.value === originalParentId.value) {
-    impact.value = undefined;
     return undefined;
   }
-  const result = await impactRequest.execute(() =>
-    getOrgMoveImpactApi(org.id, parentId.value),
-  );
-  if (result) impact.value = result;
-  return result;
+  const requestParentId = parentId.value;
+  try {
+    const result = await impactRequest.execute(() =>
+      getOrgMoveImpactApi(org.id, requestParentId),
+    );
+    if (result && requestParentId === parentId.value) {
+      impact.value = result;
+      impactParentKey.value = parentKey(requestParentId);
+      return result;
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function parentChanged() {

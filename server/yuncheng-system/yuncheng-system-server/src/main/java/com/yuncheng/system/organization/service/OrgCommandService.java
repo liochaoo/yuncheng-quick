@@ -98,15 +98,23 @@ public class OrgCommandService implements SystemOrgCommandApi {
         );
         uniquenessService.requireCodeAvailable(orgCode, orgId);
         uniquenessService.requireNameAvailable(org.getParentId(), orgName, orgId);
+        int sortOrder = normalizeSortOrder(request.sortOrder());
+        if (Objects.equals(org.getOrgName(), orgName)) {
+            org.setOrgCode(orgCode);
+            org.setSortOrder(sortOrder);
+            org.setDescription(description);
+            orgMapper.updateById(org);
+            return;
+        }
         String newFullPath = replaceOrgName(org.getFullPath(), orgName);
-        orgMapper.updateSubtreeAfterEdit(
+        orgMapper.updateSubtreeAfterRename(
                 orgId,
                 org.getPathIds(),
                 org.getFullPath(),
                 newFullPath,
                 orgCode,
                 orgName,
-                valueOrZero(request.sortOrder()),
+                sortOrder,
                 description,
                 Instant.now(),
                 currentOperatorId()
@@ -119,6 +127,10 @@ public class OrgCommandService implements SystemOrgCommandApi {
                 ? null
                 : queryService.requireOrg(newParentId);
         MovePlan plan = prepareMove(org, newParent);
+        validateMoveDepth(
+                orgMapper.selectMaxDepthByPathIds(org.getPathIds()),
+                plan.depthDelta()
+        );
         int orgCount = Math.toIntExact(orgMapper.selectCount(
                 new LambdaQueryWrapper<SystemOrg>()
                         .likeRight(SystemOrg::getPathIds, org.getPathIds())
@@ -144,11 +156,7 @@ public class OrgCommandService implements SystemOrgCommandApi {
                 .mapToInt(SystemOrg::getDepth)
                 .max()
                 .orElse(org.getDepth());
-        if (maxDepth + plan.depthDelta() > OrgConstants.MAX_DEPTH) {
-            throw PlatformException.badRequest(
-                    "移动后组织层级不能超过 " + OrgConstants.MAX_DEPTH + " 层"
-            );
-        }
+        validateMoveDepth(maxDepth, plan.depthDelta());
         orgMapper.updateSubtreeAfterMove(
                 orgId,
                 org.getPathIds(),
@@ -225,7 +233,7 @@ public class OrgCommandService implements SystemOrgCommandApi {
         org.setPathIds(pathIds(parent, orgId));
         org.setFullPath(fullPath(parent, orgName));
         org.setDepth(depth);
-        org.setSortOrder(valueOrZero(sortOrder));
+        org.setSortOrder(normalizeSortOrder(sortOrder));
         org.setDescription(normalizeOptionalText(
                 rawDescription,
                 OrgConstants.MAX_DESCRIPTION_LENGTH,
@@ -356,6 +364,25 @@ public class OrgCommandService implements SystemOrgCommandApi {
 
     private int valueOrZero(Integer value) {
         return value == null ? 0 : value;
+    }
+
+    private int normalizeSortOrder(Integer value) {
+        int normalized = valueOrZero(value);
+        if (normalized < 0) {
+            throw PlatformException.badRequest("排序号不能小于 0");
+        }
+        return normalized;
+    }
+
+    private void validateMoveDepth(Integer maxDepth, int depthDelta) {
+        if (maxDepth == null) {
+            throw PlatformException.notFound("组织不存在");
+        }
+        if (maxDepth + depthDelta > OrgConstants.MAX_DEPTH) {
+            throw PlatformException.badRequest(
+                    "移动后组织层级不能超过 " + OrgConstants.MAX_DEPTH + " 层"
+            );
+        }
     }
 
     private Long currentOperatorId() {

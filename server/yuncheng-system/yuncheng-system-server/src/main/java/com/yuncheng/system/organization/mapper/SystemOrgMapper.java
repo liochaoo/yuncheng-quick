@@ -15,7 +15,9 @@ public interface SystemOrgMapper extends BaseMapper<SystemOrg> {
 
     List<SystemOrg> selectSubtreeForUpdate(@Param("pathIds") String pathIds);
 
-    int updateSubtreeAfterEdit(
+    Integer selectMaxDepthByPathIds(@Param("pathIds") String pathIds);
+
+    int updateSubtreeAfterRename(
             @Param("orgId") Long orgId,
             @Param("pathIds") String pathIds,
             @Param("oldFullPath") String oldFullPath,

@@ -11,7 +11,6 @@ import {
   ElEmpty,
   ElInput,
   ElMessage,
-  ElPagination,
   ElScrollbar,
   ElTag,
   ElTree,
@@ -40,6 +39,7 @@ interface OrgTreeOption extends OrgOption {
 
 const props = withDefaults(
   defineProps<{
+    clearable?: boolean;
     disabledIds?: string[];
     excludeIds?: string[];
     excludeSubtreeRootId?: string;
@@ -50,6 +50,7 @@ const props = withDefaults(
     title?: string;
   }>(),
   {
+    clearable: true,
     disabledIds: () => [],
     excludeIds: () => [],
     excludeSubtreeRootId: undefined,
@@ -69,10 +70,7 @@ const visible = defineModel<boolean>({ required: true });
 const draftIds = ref<string[]>([]);
 const knownOptions = ref(new Map<string, OrgOption>());
 const keyword = ref('');
-const page = ref(1);
-const pageSize = 10;
 const searchItems = ref<OrgOption[]>([]);
-const searchTotal = ref(0);
 const selectedRequest = useLatestRequest();
 const searchRequest = useLatestRequest();
 const treeKey = computed(() =>
@@ -139,7 +137,7 @@ function detailToOption(
   };
 }
 
-const loadTreeNode: LoadFunction = async (treeNode, resolve) => {
+const loadTreeNode: LoadFunction = async (treeNode, resolve, reject) => {
   try {
     const data = treeNode.data as OrgOption | undefined;
     const parentId = treeNode.level === 0 ? undefined : data?.id;
@@ -150,7 +148,7 @@ const loadTreeNode: LoadFunction = async (treeNode, resolve) => {
     mergeOptions(items);
     resolve(items.map((item) => toTreeOption(item)));
   } catch {
-    resolve([]);
+    reject();
   }
 };
 
@@ -174,35 +172,24 @@ async function search() {
   searchRequest.invalidate();
   if (!value) {
     searchItems.value = [];
-    searchTotal.value = 0;
     return;
   }
   const result = await searchRequest.execute(async () => {
     if (props.permissionScope === 'organization-management') {
-      const items = await listOrgsApi({ keyword: value });
-      const from = (page.value - 1) * pageSize;
-      return {
-        items: items.slice(from, from + pageSize),
-        total: items.length,
-      };
+      return listOrgsApi({ keyword: value });
     }
     return searchOrgOptionsApi({
       keyword: value,
-      page: page.value,
-      pageSize,
     });
   });
   if (!result) return;
-  mergeOptions(result.items);
-  searchItems.value = result.items;
-  searchTotal.value = result.total;
+  mergeOptions(result);
+  searchItems.value = result;
 }
 
 function resetSearch() {
   keyword.value = '';
-  page.value = 1;
   searchItems.value = [];
-  searchTotal.value = 0;
 }
 
 function selected(id: string) {
@@ -242,11 +229,6 @@ function confirm() {
   visible.value = false;
 }
 
-function changePage(value: number) {
-  page.value = value;
-  void search();
-}
-
 watch(visible, (value) => {
   if (!value) {
     selectedRequest.invalidate();
@@ -264,6 +246,7 @@ watch(visible, (value) => {
 <template>
   <PagedSelectionDialog
     v-model="visible"
+    :clearable="clearable"
     :loading="selectedRequest.loading.value"
     :selected-count="draftIds.length"
     :title="title"
@@ -355,20 +338,6 @@ watch(visible, (value) => {
             </span>
           </template>
         </ElTree>
-
-        <div
-          v-if="keyword.trim() && searchTotal > pageSize"
-          class="flex justify-end border-t p-2"
-        >
-          <ElPagination
-            background
-            layout="prev, pager, next"
-            :current-page="page"
-            :page-size="pageSize"
-            :total="searchTotal"
-            @current-change="changePage"
-          />
-        </div>
       </div>
     </template>
 
