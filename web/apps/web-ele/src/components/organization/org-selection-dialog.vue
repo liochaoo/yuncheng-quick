@@ -209,11 +209,13 @@ function choose(org: OrgOption) {
 }
 
 function remove(org: OrgOption) {
+  if (!props.multiple && !props.clearable) return;
   if (props.disabledIds.includes(org.id)) return;
   draftIds.value = draftIds.value.filter((id) => id !== org.id);
 }
 
 function clear() {
+  if (!props.clearable) return;
   draftIds.value = draftIds.value.filter((id) =>
     props.disabledIds.includes(id),
   );
@@ -360,7 +362,7 @@ watch(visible, (value) => {
             </div>
           </div>
           <ElButton
-            v-if="!disabledIds.includes(item.id)"
+            v-if="!disabledIds.includes(item.id) && (multiple || clearable)"
             link
             type="danger"
             @click="remove(item)"
