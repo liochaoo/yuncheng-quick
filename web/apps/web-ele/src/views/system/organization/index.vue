@@ -17,7 +17,7 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   deleteOrgApi,
   listOrgChildrenApi,
-  pageOrgsApi,
+  listOrgsApi,
 } from '#/api/system/organization';
 import EnumTag from '#/components/display/enum-tag.vue';
 import { ORG_TYPE_OPTIONS } from '#/components/organization';
@@ -115,29 +115,18 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
     columns,
     height: 'auto',
-    pagerConfig: { enabled: true, pageSize: 20 },
+    pagerConfig: { enabled: false },
     proxyConfig: {
       ajax: {
-        query: async (
-          { page }: { page: { currentPage: number; pageSize: number } },
-          values: OrgSearchValues,
-        ) => {
+        query: async (_params: unknown, values: OrgSearchValues) => {
           const keyword = values.keyword?.trim() || undefined;
           searching.value = Boolean(keyword);
-          const result = await pageOrgsApi({
+          const items = await listOrgsApi({
             keyword,
-            page: page.currentPage,
-            pageSize: page.pageSize,
           });
           return searching.value
-            ? {
-                ...result,
-                items: result.items.map((item) => ({
-                  ...item,
-                  hasChildren: false,
-                })),
-              }
-            : result;
+            ? items.map((item) => ({ ...item, hasChildren: false }))
+            : items;
         },
       },
     },

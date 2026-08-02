@@ -49,7 +49,14 @@ const visible = defineModel<boolean>({ required: true });
       >
         <header class="flex items-center justify-between border-b px-3 py-2.5">
           <span class="font-medium">已选择 {{ selectedCount }} 项</span>
-          <ElButton link type="primary" @click="emit('clear')">清空</ElButton>
+          <ElButton
+            :disabled="loading"
+            link
+            type="primary"
+            @click="emit('clear')"
+          >
+            清空
+          </ElButton>
         </header>
         <ElScrollbar class="min-h-0 flex-1 p-3">
           <slot name="selected"></slot>
@@ -59,7 +66,9 @@ const visible = defineModel<boolean>({ required: true });
 
     <template #footer>
       <ElButton @click="visible = false">取消</ElButton>
-      <ElButton type="primary" @click="emit('confirm')">确定</ElButton>
+      <ElButton :disabled="loading" type="primary" @click="emit('confirm')">
+        确定
+      </ElButton>
     </template>
   </ElDialog>
 </template>

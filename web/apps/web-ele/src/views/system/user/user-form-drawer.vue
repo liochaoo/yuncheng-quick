@@ -29,9 +29,13 @@ import {
   createDefaultUserForm,
   fillUserForm,
 } from './user-form-model';
+import UserOrgAssignmentEditor from './user-org-assignment-editor.vue';
 import UserRoleSelect from './user-role-select.vue';
 
 type UserRoleSelectInstance = InstanceType<typeof UserRoleSelect>;
+type UserOrgAssignmentEditorInstance = InstanceType<
+  typeof UserOrgAssignmentEditor
+>;
 
 const emit = defineEmits<{
   success: [];
@@ -40,6 +44,7 @@ const emit = defineEmits<{
 const formRef = ref<FormInstance>();
 const model = reactive<UserFormModel>(createDefaultUserForm());
 const roleSelectRef = ref<UserRoleSelectInstance>();
+const orgAssignmentRef = ref<UserOrgAssignmentEditorInstance>();
 
 const {
   Drawer,
@@ -52,13 +57,19 @@ const {
     async applyLoaded(detail) {
       if (detail) fillUserForm(model, detail);
       await nextTick();
-      await roleSelectRef.value?.loadSelected(model.roleIds);
+      await Promise.all([
+        roleSelectRef.value?.loadSelected(model.roleIds),
+        orgAssignmentRef.value?.loadSelected(model.orgIds),
+      ]);
     },
     formRef,
     async load(data) {
       return data.id ? getUserFormDataApi(data.id) : undefined;
     },
-    onClose: () => roleSelectRef.value?.clearOptions(),
+    onClose: () => {
+      roleSelectRef.value?.clearOptions();
+      orgAssignmentRef.value?.clearOptions();
+    },
     onSuccess: () => emit('success'),
     reset: resetModel,
     resourceName: '用户',
@@ -83,7 +94,7 @@ function resetModel() {
   <Drawer
     :loading="initializing"
     :title="drawerTitle"
-    :class="BUSINESS_FORM_DRAWER_WIDTH.medium"
+    :class="BUSINESS_FORM_DRAWER_WIDTH.mediumWide"
   >
     <ElForm
       ref="formRef"
@@ -158,6 +169,15 @@ function resetModel() {
             <SortOrderInput v-model="model.sortOrder" />
           </ElFormItem>
         </FormGrid>
+      </FormSection>
+      <FormSection title="组织归属">
+        <ElFormItem label="组织归属" prop="orgIds">
+          <UserOrgAssignmentEditor
+            ref="orgAssignmentRef"
+            v-model="model.orgIds"
+            v-model:primary-org-id="model.primaryOrgId"
+          />
+        </ElFormItem>
       </FormSection>
       <FormSection title="角色配置">
         <ElFormItem label="角色" prop="roleIds">

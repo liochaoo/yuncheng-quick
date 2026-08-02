@@ -130,6 +130,7 @@ function parentChanged() {
           v-model="parentId"
           :clearable="canMoveToRoot"
           :exclude-subtree-root-id="currentOrg.id"
+          permission-scope="organization-management"
           placeholder="不选择表示移动为顶级组织"
           :selectable-types="selectableParentTypes"
           @change="parentChanged"
@@ -143,7 +144,9 @@ function parentChanged() {
         title="移动影响"
         type="warning"
       >
-        本次调整将移动 {{ impact.orgCount }} 个组织。调整后的路径为：
+        本次调整将移动 {{ impact.orgCount }} 个组织，并影响
+        {{ impact.userCount }} 名用户的
+        {{ impact.relationCount }} 条组织归属关系。调整后的路径为：
         {{ impact.newFullPath }}
       </ElAlert>
     </div>

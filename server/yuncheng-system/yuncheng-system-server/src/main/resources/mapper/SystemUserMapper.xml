@@ -38,6 +38,28 @@
             <if test="query.enabled != null">
                 AND u.enabled = #{query.enabled}
             </if>
+            <if test="query.orgId != null">
+                AND EXISTS (
+                    SELECT 1
+                    FROM system_user_org uo
+                    INNER JOIN system_org o ON o.id = uo.org_id
+                    WHERE uo.user_id = u.id
+                    <choose>
+                        <when test="query.includeDescendants">
+                            AND o.path_ids LIKE CONCAT(#{query.orgPathIds}, '%')
+                        </when>
+                        <otherwise>
+                            AND uo.org_id = #{query.orgId}
+                        </otherwise>
+                    </choose>
+                    <if test="query.primaryOrgOnly">
+                        AND uo.is_primary = 1
+                    </if>
+                    <if test="query.otherOrgOnly">
+                        AND uo.is_primary = 0
+                    </if>
+                )
+            </if>
         </where>
         ORDER BY u.sort_order ASC, u.id ASC
     </select>

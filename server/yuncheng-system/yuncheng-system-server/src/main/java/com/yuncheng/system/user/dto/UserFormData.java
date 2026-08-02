@@ -11,6 +11,8 @@ public record UserFormData(
         String email,
         int sortOrder,
         boolean enabled,
-        List<String> roleIds
+        List<String> roleIds,
+        List<String> orgIds,
+        String primaryOrgId
 ) {
 }

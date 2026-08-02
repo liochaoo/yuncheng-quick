@@ -67,6 +67,22 @@ export function useUserFormRules(
           },
         ]
       : [],
+    orgIds: [
+      {
+        message: '请至少选择一个组织归属',
+        required: true,
+        trigger: 'change',
+        type: 'array',
+      },
+      {
+        message: '主归属必须包含在组织归属中',
+        trigger: 'change',
+        validator: () =>
+          Boolean(
+            model.primaryOrgId && model.orgIds.includes(model.primaryOrgId),
+          ),
+      },
+    ],
     phone: [
       {
         message: PHONE_VALIDATION_MESSAGE,

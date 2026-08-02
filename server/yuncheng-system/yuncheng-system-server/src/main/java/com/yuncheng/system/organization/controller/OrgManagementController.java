@@ -3,15 +3,14 @@ package com.yuncheng.system.organization.controller;
 import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.framework.security.authorization.annotation.RequirePermission;
 import com.yuncheng.framework.web.constant.WebConstants;
-import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.system.organization.constant.OrgPermissionCodes;
 import com.yuncheng.system.organization.dto.OrgCreateRequest;
 import com.yuncheng.system.organization.dto.OrgDetail;
 import com.yuncheng.system.organization.dto.OrgItem;
+import com.yuncheng.system.organization.dto.OrgListQuery;
 import com.yuncheng.system.organization.dto.OrgMoveImpact;
 import com.yuncheng.system.organization.dto.OrgMoveRequest;
-import com.yuncheng.system.organization.dto.OrgPageQuery;
 import com.yuncheng.system.organization.dto.OrgUpdateRequest;
 import com.yuncheng.system.organization.service.OrgCommandService;
 import com.yuncheng.system.organization.service.OrgQueryService;
@@ -48,10 +47,10 @@ public class OrgManagementController {
 
     @GetMapping
     @RequirePermission(OrgPermissionCodes.QUERY)
-    public ApiResponse<PageResult<OrgItem>> page(
-            @Valid OrgPageQuery query
+    public ApiResponse<List<OrgItem>> list(
+            @Valid OrgListQuery query
     ) {
-        return ApiResponse.success(queryService.page(query));
+        return ApiResponse.success(queryService.list(query));
     }
 
     @GetMapping("/children")

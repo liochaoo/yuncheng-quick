@@ -8,6 +8,7 @@ public record SystemUserBatchCreateItem(
         String phone,
         String email,
         int sortOrder,
-        boolean enabled
+        boolean enabled,
+        Long primaryOrgId
 ) {
 }

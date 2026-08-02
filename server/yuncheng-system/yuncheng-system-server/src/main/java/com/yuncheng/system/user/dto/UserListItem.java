@@ -18,6 +18,7 @@ public record UserListItem(
         Instant loginLockedUntil,
         int loginFailedCount,
         Instant passwordChangedAt,
+        UserPrimaryOrgSummary primaryOrg,
         List<RoleSummary> roles,
         Instant createdAt,
         Instant updatedAt

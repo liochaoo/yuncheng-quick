@@ -44,6 +44,7 @@ public class UserCommandService implements SystemUserCommandApi {
     private final UserInputService inputService;
     private final UserAccessCacheService cacheService;
     private final LoginSessionService sessionService;
+    private final UserOrgService userOrgService;
 
     public UserCommandService(
             SystemUserMapper userMapper,
@@ -56,7 +57,8 @@ public class UserCommandService implements SystemUserCommandApi {
             UserPasswordHistoryService passwordHistoryService,
             UserInputService inputService,
             UserAccessCacheService cacheService,
-            LoginSessionService sessionService
+            LoginSessionService sessionService,
+            UserOrgService userOrgService
     ) {
         this.userMapper = userMapper;
         this.userQueryService = userQueryService;
@@ -69,6 +71,7 @@ public class UserCommandService implements SystemUserCommandApi {
         this.inputService = inputService;
         this.cacheService = cacheService;
         this.sessionService = sessionService;
+        this.userOrgService = userOrgService;
     }
 
     @Transactional
@@ -90,6 +93,7 @@ public class UserCommandService implements SystemUserCommandApi {
         user.setSortOrder(valueOrZero(request.sortOrder()));
         user.setEnabled(true);
         userMapper.insert(user);
+        userOrgService.replace(user.getId(), request.orgIds(), request.primaryOrgId());
         passwordHistoryService.recordCreatedUsers(List.of(user));
         userRoleService.replaceUserRoles(user.getId(), request.roleIds());
         return user.getId();
@@ -128,6 +132,7 @@ public class UserCommandService implements SystemUserCommandApi {
         user.setSortOrder(command.sortOrder());
         user.setEnabled(command.enabled());
         userMapper.insert(user);
+        userOrgService.bindPrimary(user.getId(), command.primaryOrgId());
         passwordHistoryService.recordCreatedUsers(List.of(user));
         return user.getId();
     }
@@ -173,6 +178,11 @@ public class UserCommandService implements SystemUserCommandApi {
         }
         requireBatchAvailable(users);
         userMapper.insert(users, BATCH_SIZE);
+        Map<Long, Long> primaryOrgIds = new LinkedHashMap<>(users.size());
+        for (int index = 0; index < users.size(); index++) {
+            primaryOrgIds.put(users.get(index).getId(), command.users().get(index).primaryOrgId());
+        }
+        userOrgService.bindPrimaryBatch(primaryOrgIds);
         passwordHistoryService.recordCreatedUsers(users);
         Map<String, Long> result = new LinkedHashMap<>(users.size());
         users.forEach(user -> result.put(user.getUsername(), user.getId()));
@@ -181,7 +191,10 @@ public class UserCommandService implements SystemUserCommandApi {
 
     @Transactional
     public void update(Long userId, UserUpdateRequest request) {
-        SystemUser user = userQueryService.requireUser(userId);
+        SystemUser user = userMapper.selectByIdForUpdate(userId);
+        if (user == null) {
+            throw PlatformException.notFound("用户不存在");
+        }
         userAccessService.requireCanManage(userId);
         String phone = inputService.normalizePhone(request.phone());
         String email = inputService.normalizeEmail(request.email());
@@ -192,6 +205,7 @@ public class UserCommandService implements SystemUserCommandApi {
         user.setEmail(email);
         user.setSortOrder(valueOrZero(request.sortOrder()));
         userMapper.updateById(user);
+        userOrgService.replace(userId, request.orgIds(), request.primaryOrgId());
         userRoleService.replaceUserRoles(userId, request.roleIds());
         cacheService.clearAllAfterCommit(List.of(userId));
     }
@@ -230,6 +244,7 @@ public class UserCommandService implements SystemUserCommandApi {
         sessionService.deleteAllByUserId(userId);
         userRoleService.deleteByUserId(userId);
         passwordHistoryService.deleteByUserId(userId);
+        userOrgService.deleteByUserId(userId);
         userMapper.deleteById(userId);
         cacheService.clearAllAfterCommit(List.of(userId));
     }

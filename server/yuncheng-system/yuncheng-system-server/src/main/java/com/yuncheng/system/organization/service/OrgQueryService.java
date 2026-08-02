@@ -8,15 +8,21 @@ import com.yuncheng.framework.web.exception.PlatformException;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.system.api.organization.SystemOrgInfo;
 import com.yuncheng.system.api.organization.SystemOrgQueryApi;
+import com.yuncheng.system.api.organization.SystemOrgType;
+import com.yuncheng.system.organization.dto.OrgContextItem;
 import com.yuncheng.system.organization.dto.OrgDetail;
+import com.yuncheng.system.organization.dto.OrgIdentity;
 import com.yuncheng.system.organization.dto.OrgItem;
+import com.yuncheng.system.organization.dto.OrgListQuery;
 import com.yuncheng.system.organization.dto.OrgPageQuery;
 import com.yuncheng.system.organization.entity.SystemOrg;
 import com.yuncheng.system.organization.mapper.SystemOrgMapper;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
@@ -34,26 +40,7 @@ public class OrgQueryService implements SystemOrgQueryApi {
 
     public PageResult<OrgItem> page(OrgPageQuery query) {
         String keyword = normalizedText(query.getKeyword());
-        String codeKeyword = normalizedCode(keyword);
-        LambdaQueryWrapper<SystemOrg> wrapper =
-                new LambdaQueryWrapper<SystemOrg>();
-        if (StringUtils.hasText(keyword)) {
-            if (isAscii(keyword)) {
-                wrapper.and(nested -> nested
-                        .like(SystemOrg::getOrgCode, codeKeyword)
-                        .or()
-                        .like(SystemOrg::getOrgName, keyword)
-                        .or()
-                        .like(SystemOrg::getFullPath, keyword));
-            } else {
-                wrapper.and(nested -> nested
-                        .like(SystemOrg::getOrgName, keyword)
-                        .or()
-                        .like(SystemOrg::getFullPath, keyword));
-            }
-        } else {
-            wrapper.isNull(SystemOrg::getParentId);
-        }
+        LambdaQueryWrapper<SystemOrg> wrapper = queryWrapper(keyword);
         wrapper.orderByAsc(SystemOrg::getSortOrder, SystemOrg::getId);
         IPage<SystemOrg> page = orgMapper.selectPage(
                 new Page<>(query.getPage(), query.getPageSize()),
@@ -61,6 +48,13 @@ public class OrgQueryService implements SystemOrgQueryApi {
         );
         List<OrgItem> items = toItems(page.getRecords());
         return PageResult.of(items, page.getTotal(), query);
+    }
+
+    public List<OrgItem> list(OrgListQuery query) {
+        String keyword = normalizedText(query.getKeyword());
+        LambdaQueryWrapper<SystemOrg> wrapper = queryWrapper(keyword);
+        wrapper.orderByAsc(SystemOrg::getSortOrder, SystemOrg::getId);
+        return toItems(orgMapper.selectList(wrapper));
     }
 
     public List<OrgItem> children(Long parentId) {
@@ -105,12 +99,63 @@ public class OrgQueryService implements SystemOrgQueryApi {
         return toItems(List.of(requireOrg(orgId))).getFirst();
     }
 
+    public List<OrgContextItem> contextItems(List<Long> requestedOrgIds) {
+        Map<Long, SystemOrg> requestedOrgs = requireOrgs(requestedOrgIds);
+        Set<Long> pathOrgIds = new HashSet<>();
+        requestedOrgs.values().forEach(org -> pathOrgIds.addAll(pathIds(org)));
+        Map<Long, SystemOrg> pathOrgs = requireOrgs(pathOrgIds);
+        Map<Long, OrgItem> items = toItems(requestedOrgs.values().stream().toList()).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        item -> Long.valueOf(item.id()),
+                        item -> item
+                ));
+        return requestedOrgIds.stream().distinct().map(orgId -> {
+            SystemOrg directOrg = requestedOrgs.get(orgId);
+            OrgItem item = items.get(orgId);
+            List<SystemOrg> path = pathIds(directOrg).stream()
+                    .map(pathOrgs::get)
+                    .toList();
+            return new OrgContextItem(
+                    item.id(),
+                    item.parentId(),
+                    item.orgType(),
+                    item.orgCode(),
+                    item.orgName(),
+                    item.fullPath(),
+                    item.depth(),
+                    item.sortOrder(),
+                    item.hasChildren(),
+                    item.protectedOrg(),
+                    item.ancestorIds(),
+                    firstIdentity(path, SystemOrgType.ORGANIZATION),
+                    lastIdentity(path, SystemOrgType.ORGANIZATION),
+                    firstIdentity(path, SystemOrgType.DEPARTMENT),
+                    lastIdentity(path, SystemOrgType.DEPARTMENT),
+                    firstIdentity(path, SystemOrgType.GROUP),
+                    lastIdentity(path, SystemOrgType.GROUP)
+            );
+        }).toList();
+    }
+
     public SystemOrg requireOrg(Long orgId) {
         SystemOrg org = orgId == null ? null : orgMapper.selectById(orgId);
         if (org == null) {
             throw PlatformException.notFound("组织不存在");
         }
         return org;
+    }
+
+    public Map<Long, SystemOrg> requireOrgs(java.util.Collection<Long> orgIds) {
+        if (orgIds == null || orgIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Long> distinctIds = orgIds.stream().distinct().toList();
+        Map<Long, SystemOrg> result = new LinkedHashMap<>();
+        orgMapper.selectByIds(distinctIds).forEach(org -> result.put(org.getId(), org));
+        if (result.size() != distinctIds.size()) {
+            throw PlatformException.notFound("选择的组织中存在已被删除的数据");
+        }
+        return result;
     }
 
     @Override
@@ -156,6 +201,63 @@ public class OrgQueryService implements SystemOrgQueryApi {
                         ancestorIds(org)
                 ))
                 .toList();
+    }
+
+    private LambdaQueryWrapper<SystemOrg> queryWrapper(String keyword) {
+        String codeKeyword = normalizedCode(keyword);
+        LambdaQueryWrapper<SystemOrg> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(keyword)) {
+            if (isAscii(keyword)) {
+                wrapper.and(nested -> nested
+                        .like(SystemOrg::getOrgCode, codeKeyword)
+                        .or()
+                        .like(SystemOrg::getOrgName, keyword)
+                        .or()
+                        .like(SystemOrg::getFullPath, keyword));
+            } else {
+                wrapper.and(nested -> nested
+                        .like(SystemOrg::getOrgName, keyword)
+                        .or()
+                        .like(SystemOrg::getFullPath, keyword));
+            }
+        } else {
+            wrapper.isNull(SystemOrg::getParentId);
+        }
+        return wrapper;
+    }
+
+    private List<Long> pathIds(SystemOrg org) {
+        return Arrays.stream(org.getPathIds().split("/"))
+                .filter(StringUtils::hasText)
+                .map(Long::valueOf)
+                .toList();
+    }
+
+    private OrgIdentity firstIdentity(List<SystemOrg> path, SystemOrgType type) {
+        return path.stream()
+                .filter(org -> org.getOrgType() == type)
+                .findFirst()
+                .map(this::identity)
+                .orElse(null);
+    }
+
+    private OrgIdentity lastIdentity(List<SystemOrg> path, SystemOrgType type) {
+        for (int index = path.size() - 1; index >= 0; index--) {
+            SystemOrg org = path.get(index);
+            if (org.getOrgType() == type) {
+                return identity(org);
+            }
+        }
+        return null;
+    }
+
+    private OrgIdentity identity(SystemOrg org) {
+        return new OrgIdentity(
+                id(org.getId()),
+                org.getOrgType(),
+                org.getOrgCode(),
+                org.getOrgName()
+        );
     }
 
     private List<String> ancestorIds(SystemOrg org) {

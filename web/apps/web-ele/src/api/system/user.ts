@@ -1,9 +1,21 @@
+import type { OrgType } from '#/api/common/organization';
 import type { RoleSummary, UniquenessCheckResult } from '#/api/system/types';
 import type { PageResult } from '#/api/types';
 
 import { requestClient } from '#/api/request';
 
 export type UserUniqueField = 'EMAIL' | 'PHONE' | 'USERNAME';
+export type UserOrgRelationType = 'ALL' | 'OTHER' | 'PRIMARY';
+export type UserOrgScope = 'DIRECT' | 'INCLUDE_DESCENDANTS';
+
+export interface UserPrimaryOrgSummary {
+  fullPath: string;
+  id: string;
+  orgCode: string;
+  orgName: string;
+  orgType: OrgType;
+  otherOrgCount: number;
+}
 
 /** 用户列表项，联系方式已经由后端脱敏。 */
 export interface UserListItem {
@@ -17,6 +29,7 @@ export interface UserListItem {
   loginLockedUntil?: null | string;
   passwordChangedAt: string;
   phone?: null | string;
+  primaryOrg: UserPrimaryOrgSummary;
   realName: string;
   roles: RoleSummary[];
   sortOrder: number;
@@ -37,6 +50,8 @@ export interface UserDetail {
   loginLockedUntil?: null | string;
   passwordChangedAt: string;
   phone?: null | string;
+  orgIds: string[];
+  primaryOrgId: string;
   realName: string;
   roleIds: string[];
   sortOrder: number;
@@ -51,6 +66,8 @@ export interface UserFormData {
   enabled: boolean;
   id: string;
   phone?: null | string;
+  orgIds: string[];
+  primaryOrgId: string;
   realName: string;
   roleIds: string[];
   sortOrder: number;
@@ -62,6 +79,9 @@ export interface UserPageParams {
   page: number;
   pageSize: number;
   realName?: string;
+  orgId?: string;
+  orgRelationType?: UserOrgRelationType;
+  orgScope?: UserOrgScope;
   username?: string;
 }
 
@@ -69,6 +89,8 @@ export interface UserCreateRequest {
   email?: string;
   password: string;
   phone?: string;
+  orgIds: string[];
+  primaryOrgId: string;
   realName: string;
   roleIds: string[];
   sortOrder: number;
@@ -78,6 +100,8 @@ export interface UserCreateRequest {
 export interface UserUpdateRequest {
   email?: string;
   phone?: string;
+  orgIds: string[];
+  primaryOrgId: string;
   realName: string;
   roleIds: string[];
   sortOrder: number;

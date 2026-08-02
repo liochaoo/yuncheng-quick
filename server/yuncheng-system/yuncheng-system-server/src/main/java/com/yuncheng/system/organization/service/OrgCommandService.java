@@ -16,6 +16,7 @@ import com.yuncheng.system.organization.dto.OrgMoveRequest;
 import com.yuncheng.system.organization.dto.OrgUpdateRequest;
 import com.yuncheng.system.organization.entity.SystemOrg;
 import com.yuncheng.system.organization.mapper.SystemOrgMapper;
+import com.yuncheng.system.user.service.UserOrgService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -37,19 +38,22 @@ public class OrgCommandService implements SystemOrgCommandApi {
     private final OrgUniquenessService uniquenessService;
     private final IdentifierGenerator identifierGenerator;
     private final CurrentUserContext currentUserContext;
+    private final UserOrgService userOrgService;
 
     public OrgCommandService(
             SystemOrgMapper orgMapper,
             OrgQueryService queryService,
             OrgUniquenessService uniquenessService,
             IdentifierGenerator identifierGenerator,
-            CurrentUserContext currentUserContext
+            CurrentUserContext currentUserContext,
+            UserOrgService userOrgService
     ) {
         this.orgMapper = orgMapper;
         this.queryService = queryService;
         this.uniquenessService = uniquenessService;
         this.identifierGenerator = identifierGenerator;
         this.currentUserContext = currentUserContext;
+        this.userOrgService = userOrgService;
     }
 
     @Transactional
@@ -119,7 +123,12 @@ public class OrgCommandService implements SystemOrgCommandApi {
                 new LambdaQueryWrapper<SystemOrg>()
                         .likeRight(SystemOrg::getPathIds, org.getPathIds())
         ));
-        return new OrgMoveImpact(orgCount, plan.newFullPath());
+        return new OrgMoveImpact(
+                orgCount,
+                userOrgService.countDistinctUsersInSubtree(org.getPathIds()),
+                userOrgService.countRelationsInSubtree(org.getPathIds()),
+                plan.newFullPath()
+        );
     }
 
     @Transactional
@@ -165,6 +174,9 @@ public class OrgCommandService implements SystemOrgCommandApi {
         );
         if (hasChildren) {
             throw PlatformException.conflict("组织下仍有下级组织，不能删除");
+        }
+        if (userOrgService.countByOrgId(orgId) > 0) {
+            throw PlatformException.conflict("组织下仍有用户归属，不能删除");
         }
         orgMapper.deleteById(orgId);
     }

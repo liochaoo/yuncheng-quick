@@ -1,6 +1,7 @@
 package com.yuncheng.demo.service;
 
 import com.yuncheng.common.constant.SystemRoleCodes;
+import com.yuncheng.common.constant.BuiltInOrgIds;
 import com.yuncheng.init.system.config.AdminInitializationProperties;
 import com.yuncheng.system.api.role.SystemRoleInfo;
 import com.yuncheng.system.api.role.SystemRoleQueryApi;
@@ -66,7 +67,8 @@ public class DemoUserInitializer {
                         null,
                         null,
                         DEMO_SORT_ORDER,
-                        true
+                        true,
+                        BuiltInOrgIds.DEFAULT_ORG
                 )));
     }
 }

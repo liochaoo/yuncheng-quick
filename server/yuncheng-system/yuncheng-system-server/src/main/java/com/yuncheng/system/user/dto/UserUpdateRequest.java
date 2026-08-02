@@ -17,6 +17,13 @@ public record UserUpdateRequest(
         @NotEmpty(message = "至少需要选择一个角色")
         @Size(max = 100, message = "单次最多分配 100 个角色")
         List<@NotNull(message = "角色主键不能为空")
-                @Positive(message = "角色主键必须为正数") Long> roleIds
+                @Positive(message = "角色主键必须为正数") Long> roleIds,
+        @NotEmpty(message = "至少需要选择一个组织归属")
+        @Size(max = 100, message = "单个用户最多归属 100 个组织")
+        List<@NotNull(message = "组织主键不能为空")
+                @Positive(message = "组织主键必须为正数") Long> orgIds,
+        @NotNull(message = "主归属不能为空")
+        @Positive(message = "主归属主键必须为正数")
+        Long primaryOrgId
 ) {
 }

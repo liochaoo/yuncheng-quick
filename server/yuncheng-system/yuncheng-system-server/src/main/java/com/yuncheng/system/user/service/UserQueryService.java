@@ -8,13 +8,16 @@ import com.yuncheng.framework.web.exception.PlatformException;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.system.api.user.SystemUserInfo;
 import com.yuncheng.system.api.user.SystemUserQueryApi;
+import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.role.dto.RoleSummary;
 import com.yuncheng.system.role.service.UserRoleService;
 import com.yuncheng.system.security.service.SecurityPolicyService;
 import com.yuncheng.system.user.dto.UserDetail;
 import com.yuncheng.system.user.dto.UserFormData;
 import com.yuncheng.system.user.dto.UserListItem;
+import com.yuncheng.system.user.dto.UserOrgAssignment;
 import com.yuncheng.system.user.dto.UserPageQuery;
+import com.yuncheng.system.user.dto.UserPrimaryOrgSummary;
 import com.yuncheng.system.user.dto.UserProfileData;
 import com.yuncheng.system.user.entity.SystemUser;
 import com.yuncheng.system.user.enums.UserUniqueField;
@@ -37,6 +40,8 @@ public class UserQueryService implements SystemUserQueryApi {
     private final UserInputService inputService;
     private final UserUniquenessService uniquenessService;
     private final SecurityPolicyService securityPolicyService;
+    private final UserOrgService userOrgService;
+    private final OrgQueryService orgQueryService;
 
     public UserQueryService(
             SystemUserMapper userMapper,
@@ -44,7 +49,9 @@ public class UserQueryService implements SystemUserQueryApi {
             UserAccessService userAccessService,
             UserInputService inputService,
             UserUniquenessService uniquenessService,
-            SecurityPolicyService securityPolicyService
+            SecurityPolicyService securityPolicyService,
+            UserOrgService userOrgService,
+            OrgQueryService orgQueryService
     ) {
         this.userMapper = userMapper;
         this.userRoleService = userRoleService;
@@ -52,6 +59,8 @@ public class UserQueryService implements SystemUserQueryApi {
         this.inputService = inputService;
         this.uniquenessService = uniquenessService;
         this.securityPolicyService = securityPolicyService;
+        this.userOrgService = userOrgService;
+        this.orgQueryService = orgQueryService;
     }
 
     @Override
@@ -131,6 +140,7 @@ public class UserQueryService implements SystemUserQueryApi {
 
     public UserDetail detail(Long userId) {
         SystemUser user = requireUser(userId);
+        UserOrgAssignment orgAssignment = userOrgService.assignment(userId);
         Instant now = Instant.now();
         int failureWindowMinutes = securityPolicyService.current().loginFailure().windowMinutes();
         return new UserDetail(
@@ -141,6 +151,7 @@ public class UserQueryService implements SystemUserQueryApi {
                 isLoginLocked(user, now), user.getLoginLockedUntil(),
                 effectiveFailedCount(user, now, failureWindowMinutes),
                 user.getPasswordChangedAt(), roleIds(userId),
+                orgAssignment.orgIds(), orgAssignment.primaryOrgId(),
                 user.getCreatedAt(), id(user.getCreatedBy()), user.getUpdatedAt(), id(user.getUpdatedBy())
         );
     }
@@ -148,10 +159,12 @@ public class UserQueryService implements SystemUserQueryApi {
     public UserFormData formData(Long userId) {
         SystemUser user = requireUser(userId);
         userAccessService.requireCanManage(userId);
+        UserOrgAssignment orgAssignment = userOrgService.assignment(userId);
         return new UserFormData(
                 id(user.getId()), user.getUsername(), user.getRealName(),
                 user.getPhone(), user.getEmail(), user.getSortOrder(),
-                user.getEnabled(), roleIds(userId)
+                user.getEnabled(), roleIds(userId),
+                orgAssignment.orgIds(), orgAssignment.primaryOrgId()
         );
     }
 
@@ -177,12 +190,15 @@ public class UserQueryService implements SystemUserQueryApi {
     private List<UserListItem> toListItems(List<SystemUser> users) {
         List<Long> userIds = users.stream().map(SystemUser::getId).toList();
         Map<Long, List<RoleSummary>> roles = userRoleService.summariesByUserIds(userIds);
+        Map<Long, UserPrimaryOrgSummary> primaryOrgs =
+                userOrgService.primarySummariesByUserIds(userIds);
         Instant now = Instant.now();
         int failureWindowMinutes = securityPolicyService.current().loginFailure().windowMinutes();
         return users.stream()
                 .map(user -> toListItem(
                         user,
                         roles.getOrDefault(user.getId(), List.of()),
+                        primaryOrgs.get(user.getId()),
                         now,
                         failureWindowMinutes
                 ))
@@ -196,14 +212,23 @@ public class UserQueryService implements SystemUserQueryApi {
         if (query.getRealName() != null) {
             query.setRealName(query.getRealName().trim());
         }
+        if (query.getOrgId() != null) {
+            query.setOrgPathIds(orgQueryService.requireOrg(query.getOrgId()).getPathIds());
+        } else {
+            query.setOrgPathIds(null);
+        }
     }
 
     private UserListItem toListItem(
             SystemUser user,
             List<RoleSummary> roles,
+            UserPrimaryOrgSummary primaryOrg,
             Instant now,
             int failureWindowMinutes
     ) {
+        if (primaryOrg == null) {
+            throw PlatformException.serviceUnavailable("用户主归属数据不完整");
+        }
         return new UserListItem(
                 id(user.getId()), user.getUsername(), user.getRealName(), user.getAvatar(),
                 DataMaskingUtils.maskPhone(user.getPhone()),
@@ -212,7 +237,7 @@ public class UserQueryService implements SystemUserQueryApi {
                 isLoginLocked(user, now), user.getLoginLockedUntil(),
                 effectiveFailedCount(user, now, failureWindowMinutes),
                 user.getPasswordChangedAt(),
-                roles, user.getCreatedAt(), user.getUpdatedAt()
+                primaryOrg, roles, user.getCreatedAt(), user.getUpdatedAt()
         );
     }
 

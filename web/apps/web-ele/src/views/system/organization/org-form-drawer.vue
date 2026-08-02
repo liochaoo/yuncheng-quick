@@ -198,6 +198,7 @@ watch(
           v-model="model.parentId"
           :clearable="model.orgType === 'ORGANIZATION'"
           :disabled="!isCreate"
+          permission-scope="organization-management"
           placeholder="不选择表示顶级组织"
           :selectable-types="selectableParentTypes"
           @change="parentChanged"

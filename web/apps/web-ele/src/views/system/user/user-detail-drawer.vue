@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { OrgContextOption } from '#/api/common/organization';
 import type { RoleOption } from '#/api/system/types';
 import type { UserDetail } from '#/api/system/user';
 import type { DetailTableItem } from '#/components/detail/detail-table.types';
@@ -9,15 +10,18 @@ import { formatDateTime } from '@vben/utils';
 
 import { ElTag } from 'element-plus';
 
+import { getOrgOptionsByIdsApi } from '#/api/common/organization';
 import { getRoleOptionsByIdsApi } from '#/api/system/role';
 import { getUserDetailApi } from '#/api/system/user';
 import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
 import EnabledStatus from '#/components/display/enabled-status.vue';
+import { orgTypeLabel } from '#/components/organization';
 import { useBusinessDetailDrawer } from '#/hooks/use-business-detail-drawer';
 import { BUSINESS_FORM_DRAWER_WIDTH } from '#/types/business-form';
 
 interface UserDetailView {
+  orgs: OrgContextOption[];
   roles: RoleOption[];
   user: UserDetail;
 }
@@ -25,10 +29,17 @@ interface UserDetailView {
 const { detail, Drawer, loading } = useBusinessDetailDrawer<UserDetailView>({
   async load(id) {
     const user = await getUserDetailApi(id);
-    const roles = await getRoleOptionsByIdsApi(user.roleIds);
-    return { roles, user };
+    const [roles, orgs] = await Promise.all([
+      getRoleOptionsByIdsApi(user.roleIds),
+      getOrgOptionsByIdsApi(user.orgIds),
+    ]);
+    return { orgs, roles, user };
   },
 });
+
+const primaryOrg = computed(() =>
+  detail.value?.orgs.find((org) => org.id === detail.value?.user.primaryOrgId),
+);
 
 const basicItems = computed<DetailTableItem[]>(() => {
   const user = detail.value?.user;
@@ -59,6 +70,58 @@ const recordItems = computed<DetailTableItem[]>(() => {
   ];
 });
 
+const primaryOrgItems = computed<DetailTableItem[]>(() => {
+  const org = primaryOrg.value;
+  return [
+    {
+      key: 'directOrg',
+      label: '直接归属节点',
+      value: org?.orgName,
+    },
+    {
+      key: 'orgType',
+      label: '节点类型',
+      value: org ? orgTypeLabel(org.orgType) : undefined,
+    },
+    {
+      key: 'fullPath',
+      label: '完整路径',
+      span: 2,
+      value: org?.fullPath,
+    },
+    {
+      key: 'topOrganization',
+      label: '顶级组织',
+      value: org?.topOrganization?.orgName ?? '-',
+    },
+    {
+      key: 'organization',
+      label: '所在组织',
+      value: org?.organization?.orgName ?? '-',
+    },
+    {
+      key: 'topDepartment',
+      label: '顶级部门',
+      value: org?.topDepartment?.orgName ?? '-',
+    },
+    {
+      key: 'department',
+      label: '所在部门',
+      value: org?.department?.orgName ?? '-',
+    },
+    {
+      key: 'topGroup',
+      label: '顶级小组',
+      value: org?.topGroup?.orgName ?? '-',
+    },
+    {
+      key: 'group',
+      label: '所在小组',
+      value: org?.group?.orgName ?? '-',
+    },
+  ];
+});
+
 const securityItems = computed<DetailTableItem[]>(() => {
   const user = detail.value?.user;
   return [
@@ -84,6 +147,16 @@ const securityItems = computed<DetailTableItem[]>(() => {
     },
   ];
 });
+
+function identityText(
+  top?: null | { id: string; orgName: string },
+  current?: null | { id: string; orgName: string },
+) {
+  if (!current) return '-';
+  return top && top.id !== current.id
+    ? `${top.orgName} / ${current.orgName}`
+    : current.orgName;
+}
 </script>
 
 <template>
@@ -107,6 +180,54 @@ const securityItems = computed<DetailTableItem[]>(() => {
             <span v-else>-</span>
           </template>
         </DetailTable>
+      </DetailSection>
+
+      <DetailSection title="主归属身份">
+        <DetailTable :items="primaryOrgItems" />
+      </DetailSection>
+
+      <DetailSection title="全部组织归属">
+        <div class="space-y-3">
+          <div
+            v-for="org in detail.orgs"
+            :key="org.id"
+            class="rounded-md border px-4 py-3"
+          >
+            <div class="flex items-center gap-2">
+              <span class="font-medium">{{ org.orgName }}</span>
+              <ElTag
+                v-if="org.id === detail.user.primaryOrgId"
+                effect="dark"
+                type="primary"
+              >
+                主归属
+              </ElTag>
+              <ElTag v-else effect="plain">其他归属</ElTag>
+              <ElTag effect="plain" type="info">
+                {{ orgTypeLabel(org.orgType) }}
+              </ElTag>
+            </div>
+            <div class="mt-1 text-sm text-muted-foreground">
+              {{ org.fullPath }}
+            </div>
+            <div
+              class="mt-3 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted-foreground sm:grid-cols-3"
+            >
+              <div>
+                组织：
+                {{ identityText(org.topOrganization, org.organization) }}
+              </div>
+              <div>
+                部门：
+                {{ identityText(org.topDepartment, org.department) }}
+              </div>
+              <div>
+                小组：
+                {{ identityText(org.topGroup, org.group) }}
+              </div>
+            </div>
+          </div>
+        </div>
       </DetailSection>
 
       <DetailSection title="账号安全">

@@ -1,6 +1,7 @@
 package com.yuncheng.system.login.registration.service;
 
 import com.yuncheng.common.constant.SystemRoleCodes;
+import com.yuncheng.common.constant.BuiltInOrgIds;
 import com.yuncheng.framework.captcha.CaptchaScene;
 import com.yuncheng.framework.web.exception.PlatformException;
 import com.yuncheng.system.api.role.SystemRoleInfo;
@@ -102,7 +103,8 @@ public class RegistrationService {
                 null,
                 email,
                 0,
-                true
+                true,
+                BuiltInOrgIds.DEFAULT_ORG
         ));
         roleUserService.bind(userId, defaultRole.roleId());
     }

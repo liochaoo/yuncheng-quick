@@ -1,6 +1,7 @@
 package com.yuncheng.demo.service;
 
 import com.yuncheng.common.constant.SystemRoleCodes;
+import com.yuncheng.common.constant.BuiltInOrgIds;
 import com.yuncheng.init.system.config.AdminInitializationProperties;
 import com.yuncheng.system.api.permission.SystemPermissionQueryApi;
 import com.yuncheng.system.api.permission.SystemRolePermissionCommand;
@@ -146,7 +147,8 @@ public class DemoMassDataInitializer {
                     hasPhone ? "130" + number(index, 8) : null,
                     hasEmail ? username(index) + "@example.com" : null,
                     1_000 + index,
-                    true
+                    true,
+                    BuiltInOrgIds.DEFAULT_ORG
             ));
         }
         Map<String, Long> userIds = userCommandApi.createBatch(new SystemUserBatchCreateCommand(

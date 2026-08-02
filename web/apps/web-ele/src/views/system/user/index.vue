@@ -1,16 +1,23 @@
 <script lang="ts" setup>
 import type { VbenFormProps } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
-import type { UserListItem } from '#/api/system/user';
+import type { OrgOption } from '#/api/common/organization';
+import type {
+  UserListItem,
+  UserOrgRelationType,
+  UserOrgScope,
+} from '#/api/system/user';
 import type { RowAction } from '#/components/table/row-actions.types';
 import type { BusinessFormMode } from '#/types/business-form';
+
+import { ref } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenDrawer } from '@vben/common-ui';
 import { Plus, Trash2 } from '@vben/icons';
 import { useUserStore } from '@vben/stores';
 
-import { ElButton, ElMessage, ElTag } from 'element-plus';
+import { ElButton, ElMessage, ElOption, ElSelect, ElTag } from 'element-plus';
 
 import { refreshAfterRowsRemoved, useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
@@ -21,6 +28,7 @@ import {
   unlockUserLoginApi,
 } from '#/api/system/user';
 import EnabledStatus from '#/components/display/enabled-status.vue';
+import { AsyncOrgTree } from '#/components/organization';
 import RowActions from '#/components/table/row-actions.vue';
 import TableToolbarActions from '#/components/table/table-toolbar-actions.vue';
 import { useConfirmAction } from '#/hooks/use-confirm-action';
@@ -70,6 +78,10 @@ const [PasswordDrawer, passwordDrawerApi] = useVbenDrawer({
   destroyOnClose: true,
 });
 const { runConfirmAction } = useConfirmAction();
+const selectedOrg = ref<OrgOption>();
+const selectedOrgId = ref<string>();
+const orgScope = ref<UserOrgScope>('DIRECT');
+const orgRelationType = ref<UserOrgRelationType>('ALL');
 
 const formOptions: VbenFormProps = {
   collapsed: false,
@@ -105,6 +117,12 @@ const columns = [
     field: 'realName',
     minWidth: 120,
     title: '姓名',
+  }),
+  textColumn<UserListItem>({
+    field: 'primaryOrg',
+    minWidth: 260,
+    slots: { default: 'primaryOrg' },
+    title: '主归属',
   }),
   textColumn<UserListItem>({
     field: 'phone',
@@ -148,7 +166,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   formOptions,
   gridOptions: {
     columns,
-    height: 'auto',
+    height: '100%',
     pagerConfig: {
       enabled: true,
       pageSize: 20,
@@ -161,6 +179,11 @@ const [Grid, gridApi] = useVbenVxeGrid({
         ) =>
           pageUsersApi({
             enabled: values.enabled,
+            orgId: selectedOrgId.value,
+            orgRelationType: selectedOrgId.value
+              ? orgRelationType.value
+              : undefined,
+            orgScope: selectedOrgId.value ? orgScope.value : undefined,
             page: page.currentPage,
             pageSize: page.pageSize,
             realName: values.realName?.trim() || undefined,
@@ -180,6 +203,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
 });
 
 function refresh() {
+  gridApi.query();
+}
+
+function selectOrg(org?: OrgOption) {
+  selectedOrg.value = org;
+  selectedOrgId.value = org?.id;
   gridApi.query();
 }
 
@@ -297,55 +326,106 @@ function batchRemove() {
     <DetailDrawer />
     <FormDrawer @success="refresh" />
     <PasswordDrawer @success="refresh" />
-    <Grid table-title="用户列表">
-      <template #toolbar-tools>
-        <TableToolbarActions>
-          <ElButton
-            v-if="canAccess.add"
-            type="primary"
-            @click="openForm('create')"
+    <div class="grid h-full min-h-0 grid-cols-[280px_minmax(0,1fr)] gap-4">
+      <section class="flex min-h-0 flex-col rounded-lg border bg-card">
+        <header class="border-b px-4 py-3">
+          <div class="font-medium">组织机构</div>
+          <div class="mt-1 truncate text-xs text-muted-foreground">
+            {{ selectedOrg?.fullPath || '当前显示全部用户' }}
+          </div>
+        </header>
+        <div class="min-h-0 flex-1 p-3">
+          <AsyncOrgTree
+            v-model="selectedOrgId"
+            all-label="全部用户"
+            @select="selectOrg"
+          />
+        </div>
+        <footer
+          v-if="selectedOrgId"
+          class="grid grid-cols-2 gap-2 border-t p-3"
+        >
+          <ElSelect v-model="orgScope" aria-label="归属范围" @change="refresh">
+            <ElOption label="直属" value="DIRECT" />
+            <ElOption label="包含下级" value="INCLUDE_DESCENDANTS" />
+          </ElSelect>
+          <ElSelect
+            v-model="orgRelationType"
+            aria-label="归属类型"
+            @change="refresh"
           >
-            <Plus class="mr-1 size-4" />
-            新增用户
+            <ElOption label="全部归属" value="ALL" />
+            <ElOption label="仅主归属" value="PRIMARY" />
+            <ElOption label="仅其他归属" value="OTHER" />
+          </ElSelect>
+        </footer>
+      </section>
+
+      <Grid table-title="用户列表">
+        <template #toolbar-tools>
+          <TableToolbarActions>
+            <ElButton
+              v-if="canAccess.add"
+              type="primary"
+              @click="openForm('create')"
+            >
+              <Plus class="mr-1 size-4" />
+              新增用户
+            </ElButton>
+            <ElButton
+              v-if="canAccess.delete"
+              plain
+              type="danger"
+              @click="batchRemove"
+            >
+              <Trash2 class="mr-1 size-4" />
+              批量删除
+            </ElButton>
+          </TableToolbarActions>
+        </template>
+
+        <template #username="{ row }">
+          <ElButton link type="primary" @click="openDetail(row)">
+            {{ row.username }}
           </ElButton>
-          <ElButton
-            v-if="canAccess.delete"
-            plain
-            type="danger"
-            @click="batchRemove"
-          >
-            <Trash2 class="mr-1 size-4" />
-            批量删除
-          </ElButton>
-        </TableToolbarActions>
-      </template>
+        </template>
 
-      <template #username="{ row }">
-        <ElButton link type="primary" @click="openDetail(row)">
-          {{ row.username }}
-        </ElButton>
-      </template>
+        <template #enabled="{ row }">
+          <EnabledStatus
+            :editable="canAccess.changeStatus"
+            :disabled="
+              row.id === userStore.userInfo?.userId || !canManageUser(row)
+            "
+            :model-value="row.enabled"
+            @change="(value) => changeStatus(row, value)"
+          />
+        </template>
 
-      <template #enabled="{ row }">
-        <EnabledStatus
-          :editable="canAccess.changeStatus"
-          :disabled="
-            row.id === userStore.userInfo?.userId || !canManageUser(row)
-          "
-          :model-value="row.enabled"
-          @change="(value) => changeStatus(row, value)"
-        />
-      </template>
+        <template #primaryOrg="{ row }">
+          <div class="py-1">
+            <div class="font-medium">{{ row.primaryOrg.orgName }}</div>
+            <div class="truncate text-xs text-muted-foreground">
+              {{ row.primaryOrg.fullPath }}
+            </div>
+            <div
+              v-if="row.primaryOrg.otherOrgCount > 0"
+              class="mt-0.5 text-xs text-primary"
+            >
+              另有 {{ row.primaryOrg.otherOrgCount }} 个归属
+            </div>
+          </div>
+        </template>
 
-      <template #loginLocked="{ row }">
-        <ElTag :type="row.loginLocked ? 'warning' : 'success'">
-          {{ row.loginLocked ? '临时锁定' : '正常' }}
-        </ElTag>
-      </template>
+        <template #loginLocked="{ row }">
+          <ElTag :type="row.loginLocked ? 'warning' : 'success'">
+            {{ row.loginLocked ? '临时锁定' : '正常' }}
+          </ElTag>
+        </template>
 
-      <template #action="{ row }">
-        <RowActions :actions="userRowActions(row)" />
-      </template>
-    </Grid>
+        <template #action="{ row }">
+          <RowActions :actions="userRowActions(row)" />
+        </template>
+      </Grid>
+    </div>
   </Page>
 </template>

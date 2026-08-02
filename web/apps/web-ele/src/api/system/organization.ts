@@ -1,5 +1,4 @@
 import type { OrgOption, OrgType } from '#/api/common/organization';
-import type { PageResult } from '#/api/types';
 
 import { requestClient } from '#/api/request';
 
@@ -22,10 +21,8 @@ export interface OrgDetail {
   updatedBy: string;
 }
 
-export interface OrgPageParams {
+export interface OrgListParams {
   keyword?: string;
-  page: number;
-  pageSize: number;
 }
 
 export interface OrgCreateRequest {
@@ -47,10 +44,12 @@ export interface OrgUpdateRequest {
 export interface OrgMoveImpact {
   newFullPath: string;
   orgCount: number;
+  relationCount: number;
+  userCount: number;
 }
 
-export async function pageOrgsApi(params: OrgPageParams) {
-  return requestClient.get<PageResult<OrgOption>>('/system/orgs', { params });
+export async function listOrgsApi(params: OrgListParams) {
+  return requestClient.get<OrgOption[]>('/system/orgs', { params });
 }
 
 export async function listOrgChildrenApi(parentId?: string) {

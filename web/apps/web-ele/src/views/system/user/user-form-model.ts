@@ -8,8 +8,10 @@ export interface UserFormModel {
   confirmPassword: string;
   email: string;
   enabled: boolean;
+  orgIds: string[];
   password: string;
   phone: string;
+  primaryOrgId: string;
   realName: string;
   roleIds: string[];
   sortOrder: number;
@@ -21,8 +23,10 @@ export function createDefaultUserForm(): UserFormModel {
     confirmPassword: '',
     email: '',
     enabled: true,
+    orgIds: [],
     password: '',
     phone: '',
+    primaryOrgId: '',
     realName: '',
     roleIds: [],
     sortOrder: 0,
@@ -35,6 +39,8 @@ export function fillUserForm(model: UserFormModel, data: UserFormData) {
   model.email = data.email ?? '';
   model.enabled = data.enabled;
   model.phone = data.phone ?? '';
+  model.orgIds = [...data.orgIds];
+  model.primaryOrgId = data.primaryOrgId;
   model.realName = data.realName;
   model.roleIds = [...data.roleIds];
   model.sortOrder = data.sortOrder;
@@ -52,6 +58,8 @@ export function buildUserCreateRequest(
     email: normalizedOptional(model.email),
     password: model.password,
     phone: normalizedOptional(model.phone),
+    orgIds: [...model.orgIds],
+    primaryOrgId: model.primaryOrgId,
     realName: model.realName.trim(),
     roleIds: [...model.roleIds],
     sortOrder: model.sortOrder ?? 0,
@@ -65,6 +73,8 @@ export function buildUserUpdateRequest(
   return {
     email: normalizedOptional(model.email),
     phone: normalizedOptional(model.phone),
+    orgIds: [...model.orgIds],
+    primaryOrgId: model.primaryOrgId,
     realName: model.realName.trim(),
     roleIds: [...model.roleIds],
     sortOrder: model.sortOrder ?? 0,

@@ -114,6 +114,29 @@ CREATE TABLE system_org (
         REFERENCES system_org (id) ON UPDATE RESTRICT ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统组织';
 
+CREATE TABLE system_user_org (
+    id BIGINT NOT NULL COMMENT '主键',
+    user_id BIGINT NOT NULL COMMENT '用户主键',
+    org_id BIGINT NOT NULL COMMENT '直接归属组织主键',
+    is_primary TINYINT NOT NULL DEFAULT 0 COMMENT '是否主归属',
+    primary_user_id BIGINT GENERATED ALWAYS AS (
+        CASE WHEN is_primary = 1 THEN user_id ELSE NULL END
+    ) STORED COMMENT '主归属唯一约束辅助字段',
+    created_at DATETIME(3) NOT NULL COMMENT '创建时间',
+    created_by BIGINT NOT NULL COMMENT '创建人',
+    updated_at DATETIME(3) NOT NULL COMMENT '更新时间',
+    updated_by BIGINT NOT NULL COMMENT '更新人',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_system_user_org (user_id, org_id),
+    UNIQUE KEY uk_system_user_org_primary (primary_user_id),
+    KEY idx_system_user_org_org (org_id, is_primary, user_id),
+    CONSTRAINT ck_system_user_org_primary CHECK (is_primary IN (0, 1)),
+    CONSTRAINT fk_system_user_org_user FOREIGN KEY (user_id)
+        REFERENCES system_user (id) ON UPDATE RESTRICT ON DELETE RESTRICT,
+    CONSTRAINT fk_system_user_org_org FOREIGN KEY (org_id)
+        REFERENCES system_org (id) ON UPDATE RESTRICT ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户组织归属关系';
+
 CREATE TABLE system_menu (
     id BIGINT NOT NULL COMMENT '主键',
     parent_id BIGINT NULL COMMENT '上级菜单',

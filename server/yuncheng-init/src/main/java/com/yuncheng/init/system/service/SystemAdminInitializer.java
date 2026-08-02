@@ -1,6 +1,7 @@
 package com.yuncheng.init.system.service;
 
 import com.yuncheng.common.constant.BuiltInUserIds;
+import com.yuncheng.common.constant.BuiltInOrgIds;
 import com.yuncheng.init.system.config.AdminInitializationProperties;
 import com.yuncheng.system.api.role.SystemUserRoleApi;
 import com.yuncheng.system.api.user.SystemUserCommandApi;
@@ -69,7 +70,8 @@ public class SystemAdminInitializer {
                 null,
                 null,
                 0,
-                true
+                true,
+                BuiltInOrgIds.DEFAULT_ORG
         ));
     }
 

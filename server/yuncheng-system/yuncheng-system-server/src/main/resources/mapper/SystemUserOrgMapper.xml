@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuncheng.system.user.mapper.SystemUserOrgMapper">
+
+    <select id="countDistinctUsersInSubtree" resultType="long">
+        SELECT COUNT(DISTINCT uo.user_id)
+        FROM system_user_org uo
+        INNER JOIN system_org o ON o.id = uo.org_id
+        WHERE o.path_ids LIKE CONCAT(#{pathIds}, '%')
+    </select>
+
+    <select id="countRelationsInSubtree" resultType="long">
+        SELECT COUNT(*)
+        FROM system_user_org uo
+        INNER JOIN system_org o ON o.id = uo.org_id
+        WHERE o.path_ids LIKE CONCAT(#{pathIds}, '%')
+    </select>
+</mapper>

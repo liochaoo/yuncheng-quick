@@ -18,6 +18,8 @@ public record UserDetail(
         int loginFailedCount,
         Instant passwordChangedAt,
         List<String> roleIds,
+        List<String> orgIds,
+        String primaryOrgId,
         Instant createdAt,
         String createdBy,
         Instant updatedAt,
