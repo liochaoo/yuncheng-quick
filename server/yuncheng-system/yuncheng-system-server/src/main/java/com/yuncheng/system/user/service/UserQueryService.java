@@ -8,6 +8,7 @@ import com.yuncheng.framework.web.exception.PlatformException;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.system.api.user.SystemUserInfo;
 import com.yuncheng.system.api.user.SystemUserQueryApi;
+import com.yuncheng.system.organization.entity.SystemOrg;
 import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.role.dto.RoleSummary;
 import com.yuncheng.system.role.service.UserRoleService;
@@ -19,6 +20,7 @@ import com.yuncheng.system.user.dto.UserOrgAssignment;
 import com.yuncheng.system.user.dto.UserPageQuery;
 import com.yuncheng.system.user.dto.UserPrimaryOrgSummary;
 import com.yuncheng.system.user.dto.UserProfileData;
+import com.yuncheng.system.user.dto.UserProfileOrgData;
 import com.yuncheng.system.user.entity.SystemUser;
 import com.yuncheng.system.user.enums.UserUniqueField;
 import com.yuncheng.system.user.mapper.SystemUserMapper;
@@ -98,6 +100,27 @@ public class UserQueryService implements SystemUserQueryApi {
             return Optional.empty();
         }
         return Optional.ofNullable(userMapper.selectById(userId)).map(user -> {
+            UserOrgAssignment orgAssignment = userOrgService.assignment(userId);
+            List<Long> orgIds = orgAssignment.orgIds().stream()
+                    .map(Long::valueOf)
+                    .toList();
+            Map<Long, SystemOrg> orgs = orgQueryService.requireOrgs(orgIds);
+            List<UserProfileOrgData> profileOrgs = orgIds.stream()
+                    .map(orgId -> {
+                        SystemOrg org = orgs.get(orgId);
+                        return new UserProfileOrgData(
+                                org.getId().toString(), org.getFullPath()
+                        );
+                    })
+                    .sorted((left, right) -> {
+                        boolean leftPrimary = left.id().equals(orgAssignment.primaryOrgId());
+                        boolean rightPrimary = right.id().equals(orgAssignment.primaryOrgId());
+                        if (leftPrimary != rightPrimary) {
+                            return leftPrimary ? -1 : 1;
+                        }
+                        return left.fullPath().compareTo(right.fullPath());
+                    })
+                    .toList();
             List<String> roleNames = userRoleService
                     .summariesByUserIds(List.of(userId))
                     .getOrDefault(userId, List.of())
@@ -107,7 +130,8 @@ public class UserQueryService implements SystemUserQueryApi {
             return new UserProfileData(
                     user.getId(), user.getUsername(), user.getRealName(), user.getAvatar(),
                     user.getPhone(), user.getEmail(), Boolean.TRUE.equals(user.getEnabled()),
-                    roleNames, user.getCreatedAt(), user.getPasswordChangedAt()
+                    roleNames, profileOrgs, orgAssignment.primaryOrgId(),
+                    user.getCreatedAt(), user.getPasswordChangedAt()
             );
         });
     }
@@ -227,7 +251,7 @@ public class UserQueryService implements SystemUserQueryApi {
             int failureWindowMinutes
     ) {
         if (primaryOrg == null) {
-            throw PlatformException.serviceUnavailable("用户主归属数据不完整");
+            throw PlatformException.serviceUnavailable("用户主组织数据不完整");
         }
         return new UserListItem(
                 id(user.getId()), user.getUsername(), user.getRealName(), user.getAvatar(),

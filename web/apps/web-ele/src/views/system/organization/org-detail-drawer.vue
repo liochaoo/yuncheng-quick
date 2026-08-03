@@ -59,7 +59,7 @@ const recordItems = computed<DetailTableItem[]>(() => [
 
 <template>
   <Drawer
-    :class="BUSINESS_FORM_DRAWER_WIDTH.medium"
+    :class="BUSINESS_FORM_DRAWER_WIDTH.mediumWide"
     :loading="loading"
     title="组织详情"
   >

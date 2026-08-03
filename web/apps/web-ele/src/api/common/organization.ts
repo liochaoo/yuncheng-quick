@@ -35,7 +35,9 @@ export interface OrgContextOption extends OrgOption {
 }
 
 export interface OrgSearchParams {
-  keyword: string;
+  keyword?: string;
+  orgCode?: string;
+  orgName?: string;
 }
 
 /** 按上级节点异步加载组织，空上级表示顶级组织。 */
@@ -45,7 +47,7 @@ export async function listOrgOptionsApi(parentId?: string) {
   });
 }
 
-/** 按名称、编码或完整路径搜索组织。 */
+/** 按名称或编码搜索组织。 */
 export async function searchOrgOptionsApi(params: OrgSearchParams) {
   return requestClient.get<OrgOption[]>('/orgs/search', { params });
 }

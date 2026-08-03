@@ -5,7 +5,7 @@ import com.yuncheng.system.user.entity.SystemUserOrg;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-/** 用户组织归属关系数据库访问。 */
+/** 用户归属组织关系数据库访问。 */
 @Mapper
 public interface SystemUserOrgMapper extends BaseMapper<SystemUserOrg> {
 

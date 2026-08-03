@@ -69,13 +69,13 @@ export function useUserFormRules(
       : [],
     orgIds: [
       {
-        message: '请至少选择一个组织归属',
+        message: '请至少选择一个归属组织',
         required: true,
         trigger: 'change',
         type: 'array',
       },
       {
-        message: '主归属必须包含在组织归属中',
+        message: '主组织必须包含在归属组织中',
         trigger: 'change',
         validator: () =>
           Boolean(

@@ -28,7 +28,7 @@ import {
   unlockUserLoginApi,
 } from '#/api/system/user';
 import EnabledStatus from '#/components/display/enabled-status.vue';
-import { AsyncOrgTree } from '#/components/organization';
+import { AsyncOrgTree, OrgPath } from '#/components/organization';
 import RowActions from '#/components/table/row-actions.vue';
 import TableToolbarActions from '#/components/table/table-toolbar-actions.vue';
 import { useConfirmAction } from '#/hooks/use-confirm-action';
@@ -126,7 +126,7 @@ const columns = [
     field: 'primaryOrg',
     minWidth: 260,
     slots: { default: 'primaryOrg' },
-    title: '主归属',
+    title: '主组织',
   }),
   textColumn<UserListItem>({
     field: 'phone',
@@ -386,8 +386,8 @@ function batchRemove() {
             @change="changeOrgFilter"
           >
             <ElOption label="全部归属" value="ALL" />
-            <ElOption label="仅主归属" value="PRIMARY" />
-            <ElOption label="仅其他归属" value="OTHER" />
+            <ElOption label="仅主组织" value="PRIMARY" />
+            <ElOption label="仅其他组织" value="OTHER" />
           </ElSelect>
         </footer>
       </section>
@@ -433,18 +433,7 @@ function batchRemove() {
         </template>
 
         <template #primaryOrg="{ row }">
-          <div class="py-1">
-            <div class="font-medium">{{ row.primaryOrg.orgName }}</div>
-            <div class="truncate text-xs text-muted-foreground">
-              {{ row.primaryOrg.fullPath }}
-            </div>
-            <div
-              v-if="row.primaryOrg.otherOrgCount > 0"
-              class="mt-0.5 text-xs text-primary"
-            >
-              另有 {{ row.primaryOrg.otherOrgCount }} 个归属
-            </div>
-          </div>
+          <OrgPath :full-path="row.primaryOrg.fullPath" />
         </template>
 
         <template #loginLocked="{ row }">

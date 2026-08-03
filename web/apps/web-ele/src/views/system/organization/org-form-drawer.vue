@@ -15,6 +15,7 @@ import { computed, reactive, ref, watch } from 'vue';
 import { ElForm, ElFormItem, ElInput, ElOption, ElSelect } from 'element-plus';
 
 import {
+  checkOrgUniquenessApi,
   createOrgApi,
   getOrgDetailApi,
   updateOrgApi,
@@ -23,6 +24,7 @@ import SortOrderInput from '#/components/form/sort-order-input.vue';
 import { ORG_TYPE_SELECT_OPTIONS, OrgSelect } from '#/components/organization';
 import { useBusinessFormDrawer } from '#/hooks/use-business-form-drawer';
 import { BUSINESS_FORM_DRAWER_WIDTH } from '#/types/business-form';
+import { createUniqueValidator } from '#/utils/form-validation';
 
 import { allowedParentTypes, parentAllowsChild } from './org-type-rules';
 
@@ -41,8 +43,19 @@ interface OrgFormModel {
 }
 
 const emit = defineEmits<{
-  success: [];
+  success: [result: OrgFormSuccess];
 }>();
+
+interface OrgFormSuccess {
+  id: string;
+  mode: 'create' | 'edit';
+  nameChanged: boolean;
+  orgCode: string;
+  orgName: string;
+  parentId?: string;
+  sortChanged: boolean;
+  sortOrder: number;
+}
 
 const createDefaultModel = (): OrgFormModel => ({
   description: '',
@@ -56,34 +69,64 @@ const createDefaultModel = (): OrgFormModel => ({
 const formRef = ref<FormInstance>();
 const model = reactive<OrgFormModel>(createDefaultModel());
 const selectedParent = ref<OrgOption>();
+const original = ref<OrgDetail>();
+const successResult = ref<OrgFormSuccess>();
 
 const {
   Drawer,
   initializing,
   isCreate,
+  recordId,
   title: drawerTitle,
 } = useBusinessFormDrawer<DrawerOpenData, OrgDetail | undefined>({
   applyLoaded(detail, data) {
     model.parentId = data.defaultParent?.id;
     model.orgType = data.defaultType ?? 'ORGANIZATION';
     selectedParent.value = data.defaultParent;
+    original.value = detail;
     if (detail) fillForm(detail);
   },
   formRef,
   async load(data) {
     return data.id ? getOrgDetailApi(data.id) : undefined;
   },
-  onSuccess: () => emit('success'),
+  onSuccess: () => {
+    if (successResult.value) emit('success', successResult.value);
+  },
   reset() {
     Object.assign(model, createDefaultModel());
     selectedParent.value = undefined;
+    original.value = undefined;
+    successResult.value = undefined;
   },
   resourceName: '组织',
   async save({ id, mode }) {
     if (mode === 'create') {
-      await createOrgApi(buildCreateRequest());
+      const request = buildCreateRequest();
+      const createdId = await createOrgApi(request);
+      successResult.value = {
+        id: createdId,
+        mode,
+        nameChanged: false,
+        orgCode: request.orgCode,
+        orgName: request.orgName,
+        parentId: request.parentId,
+        sortChanged: false,
+        sortOrder: request.sortOrder,
+      };
     } else if (id) {
-      await updateOrgApi(id, buildUpdateRequest());
+      const request = buildUpdateRequest();
+      await updateOrgApi(id, request);
+      successResult.value = {
+        id,
+        mode,
+        nameChanged: original.value?.orgName !== request.orgName,
+        orgCode: request.orgCode,
+        orgName: request.orgName,
+        parentId: original.value?.parentId ?? undefined,
+        sortChanged: original.value?.sortOrder !== request.sortOrder,
+        sortOrder: request.sortOrder,
+      };
     }
   },
 });
@@ -99,6 +142,21 @@ const rules = computed<FormRules<OrgFormModel>>(() => ({
       pattern: /^[A-Za-z][A-Za-z0-9_-]*$/,
       trigger: 'blur',
     },
+    {
+      trigger: 'blur',
+      validator: createUniqueValidator({
+        check: async (value) => {
+          const result = await checkOrgUniquenessApi({
+            field: 'ORG_CODE',
+            id: recordId.value,
+            value,
+          });
+          return result.available;
+        },
+        message: '组织编码已存在',
+        normalize: (value) => value.trim().toLowerCase(),
+      }),
+    },
   ],
   orgName: [
     { message: '请输入组织名称', required: true, trigger: 'blur' },
@@ -107,6 +165,21 @@ const rules = computed<FormRules<OrgFormModel>>(() => ({
       message: '组织名称不能包含斜杠',
       pattern: /^[^/]*$/,
       trigger: 'blur',
+    },
+    {
+      trigger: 'blur',
+      validator: createUniqueValidator({
+        check: async (value) => {
+          const result = await checkOrgUniquenessApi({
+            field: 'ORG_NAME',
+            id: recordId.value,
+            parentId: model.parentId,
+            value,
+          });
+          return result.available;
+        },
+        message: '同级组织名称已存在',
+      }),
     },
   ],
   orgType: [{ message: '请选择组织类型', required: true, trigger: 'change' }],
@@ -147,6 +220,7 @@ function buildUpdateRequest(): OrgUpdateRequest {
 
 function parentChanged(parent?: OrgOption) {
   selectedParent.value = parent;
+  if (model.orgName.trim()) void formRef.value?.validateField('orgName');
 }
 
 watch(
@@ -159,6 +233,7 @@ watch(
     ) {
       model.parentId = undefined;
       selectedParent.value = undefined;
+      if (model.orgName.trim()) void formRef.value?.validateField('orgName');
     }
   },
 );
@@ -166,7 +241,7 @@ watch(
 
 <template>
   <Drawer
-    :class="BUSINESS_FORM_DRAWER_WIDTH.small"
+    :class="BUSINESS_FORM_DRAWER_WIDTH.smallWide"
     :loading="initializing"
     :title="drawerTitle"
   >

@@ -10,5 +10,6 @@ export const BUSINESS_FORM_DRAWER_WIDTH = {
   medium: 'w-[640px] max-w-[100vw]',
   mediumWide: 'w-[720px] max-w-[100vw]',
   small: 'w-[480px] max-w-[100vw]',
+  smallWide: 'w-[560px] max-w-[100vw]',
   xlarge: 'w-[1080px] max-w-[100vw]',
 } as const;

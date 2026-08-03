@@ -12,8 +12,11 @@ import com.yuncheng.system.organization.dto.OrgListQuery;
 import com.yuncheng.system.organization.dto.OrgMoveImpact;
 import com.yuncheng.system.organization.dto.OrgMoveRequest;
 import com.yuncheng.system.organization.dto.OrgUpdateRequest;
+import com.yuncheng.system.organization.dto.OrgUniquenessCheckRequest;
+import com.yuncheng.system.organization.dto.OrgUniquenessCheckResult;
 import com.yuncheng.system.organization.service.OrgCommandService;
 import com.yuncheng.system.organization.service.OrgQueryService;
+import com.yuncheng.system.organization.service.OrgUniquenessService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -36,13 +39,16 @@ public class OrgManagementController {
 
     private final OrgQueryService queryService;
     private final OrgCommandService commandService;
+    private final OrgUniquenessService uniquenessService;
 
     public OrgManagementController(
             OrgQueryService queryService,
-            OrgCommandService commandService
+            OrgCommandService commandService,
+            OrgUniquenessService uniquenessService
     ) {
         this.queryService = queryService;
         this.commandService = commandService;
+        this.uniquenessService = uniquenessService;
     }
 
     @GetMapping
@@ -74,6 +80,16 @@ public class OrgManagementController {
     @OperationLog("新增组织")
     public ApiResponse<String> create(@Valid @RequestBody OrgCreateRequest request) {
         return ApiResponse.success(commandService.create(request).toString());
+    }
+
+    @PostMapping("/uniqueness-check")
+    @RequirePermission({OrgPermissionCodes.ADD, OrgPermissionCodes.EDIT})
+    public ApiResponse<OrgUniquenessCheckResult> checkUniqueness(
+            @Valid @RequestBody OrgUniquenessCheckRequest request
+    ) {
+        boolean available = uniquenessService.isAvailable(
+                request.field(), request.value(), request.parentId(), request.id());
+        return ApiResponse.success(new OrgUniquenessCheckResult(available));
     }
 
     @PutMapping("/{id}")

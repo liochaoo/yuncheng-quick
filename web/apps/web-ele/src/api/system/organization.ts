@@ -23,6 +23,15 @@ export interface OrgDetail {
 
 export interface OrgListParams {
   keyword?: string;
+  orgCode?: string;
+  orgName?: string;
+}
+
+export interface OrgUniquenessCheckRequest {
+  field: 'ORG_CODE' | 'ORG_NAME';
+  id?: string;
+  parentId?: string;
+  value: string;
 }
 
 export interface OrgCreateRequest {
@@ -64,6 +73,13 @@ export async function getOrgDetailApi(id: string) {
 
 export async function createOrgApi(data: OrgCreateRequest) {
   return requestClient.post<string>('/system/orgs', data);
+}
+
+export async function checkOrgUniquenessApi(data: OrgUniquenessCheckRequest) {
+  return requestClient.post<{ available: boolean }>(
+    '/system/orgs/uniqueness-check',
+    data,
+  );
 }
 
 export async function updateOrgApi(id: string, data: OrgUpdateRequest) {

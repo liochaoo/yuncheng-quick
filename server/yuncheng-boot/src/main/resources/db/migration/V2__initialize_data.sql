@@ -34,7 +34,7 @@ VALUES
     (
         100000000000000200, 100000000000000100, 'MENU', '组织管理', 'SystemOrganization',
         '/system/organization', '/system/organization/index', NULL,
-        'system:organization:query', 15, 'lucide:building-2',
+        'system:organization:query', 5, 'lucide:building-2',
         0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0
     ),
     (

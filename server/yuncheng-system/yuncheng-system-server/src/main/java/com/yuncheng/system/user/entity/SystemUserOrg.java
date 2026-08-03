@@ -12,7 +12,7 @@ public class SystemUserOrg extends BaseEntity {
     private Long orgId;
 
     @TableField("is_primary")
-    private Boolean primary;
+    private Boolean primaryOrg;
 
     public Long getUserId() {
         return userId;
@@ -30,11 +30,11 @@ public class SystemUserOrg extends BaseEntity {
         this.orgId = orgId;
     }
 
-    public Boolean getPrimary() {
-        return primary;
+    public Boolean getPrimaryOrg() {
+        return primaryOrg;
     }
 
-    public void setPrimary(Boolean primary) {
-        this.primary = primary;
+    public void setPrimaryOrg(Boolean primaryOrg) {
+        this.primaryOrg = primaryOrg;
     }
 }

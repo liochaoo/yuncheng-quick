@@ -8,7 +8,7 @@ import type { BusinessFormDrawerOpenData } from '#/types/business-form';
 
 import { nextTick, reactive, ref } from 'vue';
 
-import { ElForm, ElFormItem, ElInput } from 'element-plus';
+import { ElButton, ElForm, ElFormItem, ElInput } from 'element-plus';
 
 import {
   createUserApi,
@@ -88,13 +88,17 @@ const rules = useUserFormRules(model, isCreate, recordId);
 function resetModel() {
   Object.assign(model, createDefaultUserForm());
 }
+
+function openOrgSelection() {
+  orgAssignmentRef.value?.openManage();
+}
 </script>
 
 <template>
   <Drawer
     :loading="initializing"
     :title="drawerTitle"
-    :class="BUSINESS_FORM_DRAWER_WIDTH.mediumWide"
+    :class="BUSINESS_FORM_DRAWER_WIDTH.smallWide"
   >
     <ElForm
       ref="formRef"
@@ -170,8 +174,13 @@ function resetModel() {
           </ElFormItem>
         </FormGrid>
       </FormSection>
-      <FormSection title="组织归属">
-        <ElFormItem label="组织归属" prop="orgIds">
+      <FormSection title="归属组织">
+        <template #actions>
+          <ElButton type="primary" plain @click="openOrgSelection">
+            添加归属组织
+          </ElButton>
+        </template>
+        <ElFormItem label-width="0" prop="orgIds">
           <UserOrgAssignmentEditor
             ref="orgAssignmentRef"
             v-model="model.orgIds"

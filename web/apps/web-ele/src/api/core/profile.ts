@@ -3,6 +3,12 @@ import type { FileApi } from './file';
 import { requestClient } from '#/api/request';
 
 export namespace ProfileApi {
+  /** 当前用户的归属组织路径摘要。 */
+  export interface Org {
+    fullPath: string;
+    id: string;
+  }
+
   /** 当前登录用户个人资料 */
   export interface Info {
     avatar: null | string;
@@ -10,8 +16,10 @@ export namespace ProfileApi {
     createdAt: string;
     email: null | string;
     enabled: boolean;
+    orgs: Org[];
     phone: null | string;
     passwordChangedAt: string;
+    primaryOrgId: string;
     realName: string;
     roleNames: string[];
     userId: string;

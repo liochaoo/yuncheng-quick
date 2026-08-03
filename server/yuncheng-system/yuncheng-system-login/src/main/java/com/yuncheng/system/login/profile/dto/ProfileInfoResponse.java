@@ -15,11 +15,14 @@ public record ProfileInfoResponse(
         String email,
         boolean enabled,
         List<String> roleNames,
+        List<ProfileOrgResponse> orgs,
+        String primaryOrgId,
         Instant createdAt,
         Instant passwordChangedAt
 ) {
 
     public ProfileInfoResponse {
         roleNames = roleNames == null ? List.of() : List.copyOf(roleNames);
+        orgs = orgs == null ? List.of() : List.copyOf(orgs);
     }
 }

@@ -12,6 +12,7 @@ import com.yuncheng.system.login.email.service.EmailVerificationService;
 import com.yuncheng.system.login.profile.dto.ProfileEmailChangeRequest;
 import com.yuncheng.system.login.profile.dto.ProfileEmailCodeRequest;
 import com.yuncheng.system.login.profile.dto.ProfileInfoResponse;
+import com.yuncheng.system.login.profile.dto.ProfileOrgResponse;
 import com.yuncheng.system.login.profile.dto.ProfilePasswordChangeRequest;
 import com.yuncheng.system.login.security.service.LoginSecurityService;
 import com.yuncheng.system.security.service.SecurityPolicyService;
@@ -65,11 +66,15 @@ public class ProfileService {
     public ProfileInfoResponse getProfile() {
         UserProfileData profile = requireProfile();
         FileRecord avatarFile = findAvatarFile(profile.userId());
+        List<ProfileOrgResponse> orgs = profile.orgs().stream()
+                .map(org -> new ProfileOrgResponse(org.id(), org.fullPath()))
+                .toList();
         return new ProfileInfoResponse(
                 profile.userId().toString(), profile.username(), profile.realName(),
                 profile.avatar(), avatarFile, DataMaskingUtils.maskPhone(profile.phone()),
                 DataMaskingUtils.maskEmail(profile.email()), profile.enabled(),
-                profile.roleNames(), profile.createdAt(), profile.passwordChangedAt()
+                profile.roleNames(), orgs, profile.primaryOrgId(),
+                profile.createdAt(), profile.passwordChangedAt()
         );
     }
 

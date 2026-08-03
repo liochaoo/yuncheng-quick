@@ -17,6 +17,7 @@ import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
 import EnabledStatus from '#/components/display/enabled-status.vue';
 import { AvatarUpload } from '#/components/file';
+import { OrgAssignmentList } from '#/components/organization';
 import { useAuthStore } from '#/store';
 
 const loading = ref(false);
@@ -45,7 +46,7 @@ const basicItems = computed<DetailTableItem[]>(() => [
   },
   {
     key: 'passwordChangedAt',
-    label: '密码最后修改时间',
+    label: '密码修改时间',
     value: formatDateTime(profile.value?.passwordChangedAt),
   },
   { key: 'roles', label: '角色', span: 2 },
@@ -123,6 +124,13 @@ onMounted(loadProfile);
           <span v-else>-</span>
         </template>
       </DetailTable>
+    </DetailSection>
+
+    <DetailSection title="归属组织">
+      <OrgAssignmentList
+        :items="profile?.orgs ?? []"
+        :primary-org-id="profile?.primaryOrgId ?? ''"
+      />
     </DetailSection>
   </div>
 </template>

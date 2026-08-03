@@ -12,7 +12,6 @@ import {
   ElInput,
   ElMessage,
   ElScrollbar,
-  ElTag,
   ElTree,
 } from 'element-plus';
 
@@ -29,7 +28,8 @@ import {
 import PagedSelectionDialog from '#/components/select/paged-selection-dialog.vue';
 import { useLatestRequest } from '#/hooks/use-latest-request';
 
-import { orgTypeLabel } from './org-options';
+import OrgPath from './org-path.vue';
+import OrgTypeIcon from './org-type-icon.vue';
 
 interface OrgTreeOption extends OrgOption {
   disabled: boolean;
@@ -40,7 +40,6 @@ interface OrgTreeOption extends OrgOption {
 const props = withDefaults(
   defineProps<{
     clearable?: boolean;
-    disabledIds?: string[];
     excludeIds?: string[];
     excludeSubtreeRootId?: string;
     multiple?: boolean;
@@ -51,7 +50,6 @@ const props = withDefaults(
   }>(),
   {
     clearable: true,
-    disabledIds: () => [],
     excludeIds: () => [],
     excludeSubtreeRootId: undefined,
     multiple: false,
@@ -69,7 +67,8 @@ const emit = defineEmits<{
 const visible = defineModel<boolean>({ required: true });
 const draftIds = ref<string[]>([]);
 const knownOptions = ref(new Map<string, OrgOption>());
-const keyword = ref('');
+const orgCode = ref('');
+const orgName = ref('');
 const searchItems = ref<OrgOption[]>([]);
 const selectedRequest = useLatestRequest();
 const searchRequest = useLatestRequest();
@@ -95,7 +94,6 @@ function mergeOptions(options: OrgOption[]) {
 }
 
 function disabledOrg(org: OrgOption) {
-  if (props.disabledIds.includes(org.id)) return true;
   if (props.excludeIds.includes(org.id)) return true;
   if (
     props.selectableTypes.length > 0 &&
@@ -168,18 +166,23 @@ async function loadSelected() {
 }
 
 async function search() {
-  const value = keyword.value.trim();
+  const code = orgCode.value.trim();
+  const name = orgName.value.trim();
   searchRequest.invalidate();
-  if (!value) {
+  if (!code && !name) {
     searchItems.value = [];
     return;
   }
   const result = await searchRequest.execute(async () => {
     if (props.permissionScope === 'organization-management') {
-      return listOrgsApi({ keyword: value });
+      return listOrgsApi({
+        orgCode: code || undefined,
+        orgName: name || undefined,
+      });
     }
     return searchOrgOptionsApi({
-      keyword: value,
+      orgCode: code || undefined,
+      orgName: name || undefined,
     });
   });
   if (!result) return;
@@ -188,7 +191,8 @@ async function search() {
 }
 
 function resetSearch() {
-  keyword.value = '';
+  orgCode.value = '';
+  orgName.value = '';
   searchItems.value = [];
 }
 
@@ -199,6 +203,10 @@ function selected(id: string) {
 function choose(org: OrgOption) {
   if (disabledOrg(org)) return;
   if (!props.multiple) {
+    if (selected(org.id) && props.clearable) {
+      draftIds.value = [];
+      return;
+    }
     draftIds.value = [org.id];
     return;
   }
@@ -210,15 +218,12 @@ function choose(org: OrgOption) {
 
 function remove(org: OrgOption) {
   if (!props.multiple && !props.clearable) return;
-  if (props.disabledIds.includes(org.id)) return;
   draftIds.value = draftIds.value.filter((id) => id !== org.id);
 }
 
 function clear() {
   if (!props.clearable) return;
-  draftIds.value = draftIds.value.filter((id) =>
-    props.disabledIds.includes(id),
-  );
+  draftIds.value = [];
 }
 
 function confirm() {
@@ -256,11 +261,17 @@ watch(visible, (value) => {
     @confirm="confirm"
   >
     <template #search>
-      <div class="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2">
+      <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] gap-2">
         <ElInput
-          v-model="keyword"
+          v-model="orgName"
           clearable
-          placeholder="组织名称、编码或完整路径"
+          placeholder="组织名称"
+          @keyup.enter="search"
+        />
+        <ElInput
+          v-model="orgCode"
+          clearable
+          placeholder="组织编码"
           @keyup.enter="search"
         />
         <ElButton @click="resetSearch">重置</ElButton>
@@ -271,7 +282,7 @@ watch(visible, (value) => {
     <template #list>
       <div class="flex h-full min-h-0 flex-col">
         <ElScrollbar
-          v-if="keyword.trim()"
+          v-if="orgName.trim() || orgCode.trim()"
           v-loading="searchRequest.loading.value"
           class="min-h-0 flex-1 p-2"
         >
@@ -298,14 +309,13 @@ watch(visible, (value) => {
               class="mt-1 size-3 rounded-full border"
               :class="{ 'border-primary bg-primary': selected(item.id) }"
             ></span>
-            <ElTag effect="plain" size="small">
-              {{ orgTypeLabel(item.orgType) }}
-            </ElTag>
+            <OrgTypeIcon :type="item.orgType" />
             <span class="min-w-0 flex-1">
               <span class="block font-medium">{{ item.orgName }}</span>
-              <span class="block truncate text-xs text-muted-foreground">
-                {{ item.fullPath }}
-              </span>
+              <OrgPath
+                class="text-xs text-muted-foreground"
+                :full-path="item.fullPath"
+              />
             </span>
           </button>
         </ElScrollbar>
@@ -314,6 +324,7 @@ watch(visible, (value) => {
           v-else
           :key="treeKey"
           class="min-h-0 flex-1 overflow-auto p-2"
+          :expand-on-click-node="false"
           lazy
           node-key="id"
           :load="loadTreeNode"
@@ -333,10 +344,15 @@ watch(visible, (value) => {
                 @click.stop
                 @change="choose(data)"
               />
-              <span>{{ data.orgName }}</span>
-              <span class="text-xs text-muted-foreground">
-                {{ orgTypeLabel(data.orgType) }}
-              </span>
+              <span
+                v-else
+                class="size-3 shrink-0 rounded-full border"
+                :class="{
+                  'border-primary bg-primary': selected(data.id),
+                }"
+              ></span>
+              <OrgTypeIcon :type="data.orgType" />
+              <span class="truncate">{{ data.orgName }}</span>
             </span>
           </template>
         </ElTree>
@@ -350,26 +366,15 @@ watch(visible, (value) => {
           :key="item.id"
           class="flex items-start justify-between gap-3 rounded-md border px-3 py-2"
         >
-          <div class="min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="truncate text-sm">{{ item.orgName }}</span>
-              <ElTag effect="plain" size="small">
-                {{ orgTypeLabel(item.orgType) }}
-              </ElTag>
-            </div>
-            <div class="truncate text-xs text-muted-foreground">
-              {{ item.fullPath }}
-            </div>
-          </div>
+          <OrgPath class="min-w-0 flex-1 text-sm" :full-path="item.fullPath" />
           <ElButton
-            v-if="!disabledIds.includes(item.id) && (multiple || clearable)"
+            v-if="multiple || clearable"
             link
             type="danger"
             @click="remove(item)"
           >
             移除
           </ElButton>
-          <span v-else class="text-xs text-muted-foreground">不可移除</span>
         </div>
       </div>
       <ElEmpty v-else description="暂未选择组织" :image-size="72" />

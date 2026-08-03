@@ -28,7 +28,7 @@ interface DrawerOpenData {
 }
 
 const emit = defineEmits<{
-  success: [];
+  success: [result: { id: string; newParentId?: string; oldParentId?: string }];
 }>();
 
 const currentOrg = ref<OrgOption>();
@@ -72,7 +72,11 @@ const [Drawer, drawerApi] = useVbenDrawer({
     try {
       await moveOrgApi(org.id, parentId.value);
       ElMessage.success('移动成功');
-      emit('success');
+      emit('success', {
+        id: org.id,
+        newParentId: parentId.value,
+        oldParentId: originalParentId.value,
+      });
       drawerApi.close();
     } finally {
       drawerApi.unlock();
@@ -165,7 +169,7 @@ function parentChanged() {
       >
         本次调整将移动 {{ impact.orgCount }} 个组织，并影响
         {{ impact.userCount }} 名用户的
-        {{ impact.relationCount }} 条组织归属关系。调整后的路径为：
+        {{ impact.relationCount }} 条用户归属组织关系。调整后的路径为：
         {{ impact.newFullPath }}
       </ElAlert>
     </div>

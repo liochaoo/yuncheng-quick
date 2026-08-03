@@ -13,7 +13,8 @@ import {
 } from '#/api/common/organization';
 import { useLatestRequest } from '#/hooks/use-latest-request';
 
-import { orgTypeLabel } from './org-options';
+import OrgPath from './org-path.vue';
+import OrgTypeIcon from './org-type-icon.vue';
 
 interface OrgTreeOption extends OrgOption {
   label: string;
@@ -102,11 +103,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3">
-    <ElInput
-      v-model="keyword"
-      clearable
-      placeholder="搜索组织名称、编码或路径"
-    />
+    <ElInput v-model="keyword" clearable placeholder="搜索组织名称或编码" />
 
     <button
       v-if="showAll"
@@ -140,16 +137,21 @@ onBeforeUnmount(() => {
           type="button"
           @click="select(item)"
         >
-          <span class="block text-sm">{{ item.orgName }}</span>
-          <span class="block truncate text-xs text-muted-foreground">
-            {{ orgTypeLabel(item.orgType) }} · {{ item.fullPath }}
+          <span class="flex items-center gap-2 text-sm">
+            <OrgTypeIcon :type="item.orgType" />
+            <span class="truncate">{{ item.orgName }}</span>
           </span>
+          <OrgPath
+            class="pl-6 text-xs text-muted-foreground"
+            :full-path="item.fullPath"
+          />
         </button>
       </ElScrollbar>
 
       <ElTree
         v-else
         class="h-full overflow-auto"
+        :expand-on-click-node="false"
         highlight-current
         lazy
         node-key="id"
@@ -160,10 +162,8 @@ onBeforeUnmount(() => {
       >
         <template #default="{ data }">
           <span class="flex min-w-0 items-center gap-2">
+            <OrgTypeIcon :type="data.orgType" />
             <span class="truncate">{{ data.orgName }}</span>
-            <span class="shrink-0 text-xs text-muted-foreground">
-              {{ orgTypeLabel(data.orgType) }}
-            </span>
           </span>
         </template>
       </ElTree>

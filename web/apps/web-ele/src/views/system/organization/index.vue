@@ -18,7 +18,11 @@ import {
   listOrgsApi,
 } from '#/api/system/organization';
 import EnumTag from '#/components/display/enum-tag.vue';
-import { ORG_TYPE_OPTIONS } from '#/components/organization';
+import {
+  ORG_TYPE_OPTIONS,
+  OrgPath,
+  OrgTypeIcon,
+} from '#/components/organization';
 import RowActions from '#/components/table/row-actions.vue';
 import TableToolbarActions from '#/components/table/table-toolbar-actions.vue';
 import { useConfirmAction } from '#/hooks/use-confirm-action';
@@ -31,7 +35,19 @@ import { defaultChildType } from './org-type-rules';
 import { ORG_PERMISSION_CODES } from './permission-codes';
 
 interface OrgSearchValues {
-  keyword?: string;
+  orgCode?: string;
+  orgName?: string;
+}
+
+interface OrgFormSuccess {
+  id: string;
+  mode: 'create' | 'edit';
+  nameChanged: boolean;
+  orgCode: string;
+  orgName: string;
+  parentId?: string;
+  sortChanged: boolean;
+  sortOrder: number;
 }
 
 const { hasAccessByCodes } = useAccess();
@@ -64,15 +80,24 @@ const formOptions: VbenFormProps = {
       component: 'Input',
       componentProps: {
         clearable: true,
-        placeholder: '组织名称/编码/完整路径',
+        placeholder: '请输入组织名称',
       },
-      fieldName: 'keyword',
-      label: '关键字',
+      fieldName: 'orgName',
+      label: '组织名称',
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        clearable: true,
+        placeholder: '请输入组织编码',
+      },
+      fieldName: 'orgCode',
+      label: '组织编码',
     },
   ],
   showCollapseButton: false,
   submitOnEnter: true,
-  wrapperClass: 'grid-cols-[minmax(0,480px)_auto]',
+  wrapperClass: 'grid-cols-[minmax(0,360px)_minmax(0,360px)_auto]',
 };
 
 const columns = [
@@ -97,6 +122,7 @@ const columns = [
   textColumn<OrgOption>({
     field: 'fullPath',
     minWidth: 320,
+    slots: { default: 'fullPath' },
     title: '完整路径',
   }),
   centerColumn<OrgOption>({
@@ -116,15 +142,18 @@ const [Grid, gridApi] = useVbenVxeGrid({
     proxyConfig: {
       ajax: {
         query: async (_params: unknown, values: OrgSearchValues) => {
-          const keyword = values.keyword?.trim() || undefined;
+          const orgCode = values.orgCode?.trim() || undefined;
+          const orgName = values.orgName?.trim() || undefined;
           const items = await listOrgsApi({
-            keyword,
+            orgCode,
+            orgName,
           });
           const latestValues = (gridApi.formApi.getLatestSubmissionValues() ??
             {}) as OrgSearchValues;
-          const latestKeyword = latestValues.keyword?.trim() || undefined;
-          if (keyword !== latestKeyword) return [];
-          return keyword
+          const latestOrgCode = latestValues.orgCode?.trim() || undefined;
+          const latestOrgName = latestValues.orgName?.trim() || undefined;
+          if (orgCode !== latestOrgCode || orgName !== latestOrgName) return [];
+          return orgCode || orgName
             ? items.map((item) => ({ ...item, hasChildren: false }))
             : items;
         },
@@ -145,14 +174,75 @@ const [Grid, gridApi] = useVbenVxeGrid({
       loadMethod: async ({ row }: { row: OrgOption }) =>
         listOrgChildrenApi(row.id),
       parentField: 'parentId',
+      reserve: true,
       rowField: 'id',
       transform: false,
     },
   } as VxeTableGridOptions<OrgOption>,
 });
 
-function refresh() {
-  gridApi.query();
+function expandedRows() {
+  return gridApi.grid.getTreeExpandRecords() as OrgOption[];
+}
+
+async function refreshRootsPreservingExpansion() {
+  const expanded = expandedRows()
+    .map((row) => ({ depth: row.depth, id: row.id }))
+    .toSorted((left, right) => left.depth - right.depth);
+  await gridApi.grid.clearTreeExpandReserve();
+  await gridApi.query();
+  for (const item of expanded) {
+    const row = gridApi.grid.getRowById(item.id) as null | OrgOption;
+    if (row?.hasChildren) {
+      await gridApi.grid.reloadTreeExpand(row);
+      await gridApi.grid.setTreeExpand(row, true);
+    }
+  }
+}
+
+async function reloadParent(parentId?: string) {
+  if (!parentId) {
+    await refreshRootsPreservingExpansion();
+    return;
+  }
+  const parent = gridApi.grid.getRowById(parentId) as null | OrgOption;
+  if (!parent) {
+    await refreshRootsPreservingExpansion();
+    return;
+  }
+  const children = await listOrgChildrenApi(parentId);
+  parent.hasChildren = children.length > 0;
+  if (parent.hasChildren) {
+    await gridApi.grid.reloadTreeExpand(parent);
+    await gridApi.grid.setTreeExpand(parent, true);
+  } else {
+    await gridApi.grid.clearTreeExpandLoaded(parent);
+    await gridApi.grid.setTreeExpand(parent, false);
+  }
+}
+
+async function formSaved(result: OrgFormSuccess) {
+  if (result.mode === 'create') {
+    await reloadParent(result.parentId);
+    return;
+  }
+  if (result.nameChanged) {
+    await refreshRootsPreservingExpansion();
+    return;
+  }
+  if (result.sortChanged) {
+    await reloadParent(result.parentId);
+    return;
+  }
+  const row = gridApi.grid.getRowById(result.id) as null | OrgOption;
+  if (row) {
+    row.orgCode = result.orgCode;
+    row.orgName = result.orgName;
+  }
+}
+
+async function moveSaved() {
+  await refreshRootsPreservingExpansion();
 }
 
 function openForm(
@@ -186,7 +276,7 @@ function remove(row: OrgOption) {
     action: () => deleteOrgApi(row.id),
     confirmButtonText: '删除',
     message: `确认删除组织【${row.orgName}】？只有不存在下级和业务引用的组织才能删除。`,
-    onSuccess: refresh,
+    onSuccess: () => reloadParent(row.parentId ?? undefined),
     successMessage: '删除成功',
     title: '删除组织',
   });
@@ -223,8 +313,8 @@ function rowActions(row: OrgOption): RowAction[] {
 <template>
   <Page auto-content-height>
     <DetailDrawer />
-    <FormDrawer @success="refresh" />
-    <MoveDrawer @success="refresh" />
+    <FormDrawer @success="formSaved" />
+    <MoveDrawer @success="moveSaved" />
     <Grid table-title="组织列表">
       <template #toolbar-tools>
         <TableToolbarActions>
@@ -240,9 +330,16 @@ function rowActions(row: OrgOption): RowAction[] {
       </template>
 
       <template #orgName="{ row }">
-        <ElButton link type="primary" @click="openDetail(row)">
-          {{ row.orgName }}
-        </ElButton>
+        <span class="flex min-w-0 items-center gap-2">
+          <OrgTypeIcon :type="row.orgType" />
+          <ElButton link type="primary" @click="openDetail(row)">
+            {{ row.orgName }}
+          </ElButton>
+        </span>
+      </template>
+
+      <template #fullPath="{ row }">
+        <OrgPath :full-path="row.fullPath" />
       </template>
 
       <template #orgType="{ row }">

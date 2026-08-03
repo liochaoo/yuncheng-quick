@@ -36,7 +36,9 @@ public class OrgQueryService implements SystemOrgQueryApi {
 
     public List<OrgItem> list(OrgListQuery query) {
         String keyword = normalizedText(query.getKeyword());
-        LambdaQueryWrapper<SystemOrg> wrapper = queryWrapper(keyword);
+        String orgName = normalizedText(query.getOrgName());
+        String orgCode = normalizedCode(query.getOrgCode());
+        LambdaQueryWrapper<SystemOrg> wrapper = queryWrapper(keyword, orgName, orgCode);
         wrapper.orderByAsc(SystemOrg::getSortOrder, SystemOrg::getId);
         return toItems(orgMapper.selectList(wrapper));
     }
@@ -187,7 +189,11 @@ public class OrgQueryService implements SystemOrgQueryApi {
                 .toList();
     }
 
-    private LambdaQueryWrapper<SystemOrg> queryWrapper(String keyword) {
+    private LambdaQueryWrapper<SystemOrg> queryWrapper(
+            String keyword,
+            String orgName,
+            String orgCode
+    ) {
         String codeKeyword = normalizedCode(keyword);
         LambdaQueryWrapper<SystemOrg> wrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(keyword)) {
@@ -195,16 +201,16 @@ public class OrgQueryService implements SystemOrgQueryApi {
                 wrapper.and(nested -> nested
                         .like(SystemOrg::getOrgCode, codeKeyword)
                         .or()
-                        .like(SystemOrg::getOrgName, keyword)
-                        .or()
-                        .like(SystemOrg::getFullPath, keyword));
+                        .like(SystemOrg::getOrgName, keyword));
             } else {
-                wrapper.and(nested -> nested
-                        .like(SystemOrg::getOrgName, keyword)
-                        .or()
-                        .like(SystemOrg::getFullPath, keyword));
+                wrapper.like(SystemOrg::getOrgName, keyword);
             }
-        } else {
+        }
+        wrapper.like(StringUtils.hasText(orgName), SystemOrg::getOrgName, orgName);
+        wrapper.like(StringUtils.hasText(orgCode), SystemOrg::getOrgCode, orgCode);
+        if (!StringUtils.hasText(keyword)
+                && !StringUtils.hasText(orgName)
+                && !StringUtils.hasText(orgCode)) {
             wrapper.isNull(SystemOrg::getParentId);
         }
         return wrapper;

@@ -13,11 +13,14 @@ public record UserProfileData(
         String email,
         boolean enabled,
         List<String> roleNames,
+        List<UserProfileOrgData> orgs,
+        String primaryOrgId,
         Instant createdAt,
         Instant passwordChangedAt
 ) {
 
     public UserProfileData {
         roleNames = roleNames == null ? List.of() : List.copyOf(roleNames);
+        orgs = orgs == null ? List.of() : List.copyOf(orgs);
     }
 }

@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 
-/** 维护和查询用户的直接组织归属。 */
+/** 维护和查询用户的直接归属组织。 */
 @Service
 public class UserOrgService {
 
@@ -45,7 +45,7 @@ public class UserOrgService {
                         relation -> relation
                 ));
         Long existingPrimaryOrgId = existing.stream()
-                .filter(relation -> Boolean.TRUE.equals(relation.getPrimary()))
+                .filter(relation -> Boolean.TRUE.equals(relation.getPrimaryOrg()))
                 .map(SystemUserOrg::getOrgId)
                 .findFirst()
                 .orElse(null);
@@ -56,7 +56,7 @@ public class UserOrgService {
         if (!Objects.equals(existingPrimaryOrgId, primaryOrgId)
                 && existingPrimaryOrgId != null) {
             SystemUserOrg existingPrimary = existingByOrgId.get(existingPrimaryOrgId);
-            existingPrimary.setPrimary(false);
+            existingPrimary.setPrimaryOrg(false);
             userOrgMapper.updateById(existingPrimary);
         }
         List<Long> removedRelationIds = existing.stream()
@@ -73,7 +73,7 @@ public class UserOrgService {
         if (!Objects.equals(existingPrimaryOrgId, primaryOrgId)
                 && existingByOrgId.containsKey(primaryOrgId)) {
             SystemUserOrg newPrimary = existingByOrgId.get(primaryOrgId);
-            newPrimary.setPrimary(true);
+            newPrimary.setPrimaryOrg(true);
             userOrgMapper.updateById(newPrimary);
         }
     }
@@ -96,13 +96,13 @@ public class UserOrgService {
     public UserOrgAssignment assignment(Long userId) {
         List<SystemUserOrg> relations = relationsByUserIds(List.of(userId));
         if (relations.isEmpty()) {
-            throw PlatformException.serviceUnavailable("用户组织归属数据不完整");
+            throw PlatformException.serviceUnavailable("用户归属组织数据不完整");
         }
         SystemUserOrg primary = relations.stream()
-                .filter(relation -> Boolean.TRUE.equals(relation.getPrimary()))
+                .filter(relation -> Boolean.TRUE.equals(relation.getPrimaryOrg()))
                 .findFirst()
                 .orElseThrow(() -> PlatformException.serviceUnavailable(
-                        "用户主归属数据不完整"
+                        "用户主组织数据不完整"
                 ));
         return new UserOrgAssignment(
                 relations.stream()
@@ -124,7 +124,7 @@ public class UserOrgService {
         Map<Long, Integer> relationCounts = new HashMap<>();
         relations.forEach(relation -> relationCounts.merge(relation.getUserId(), 1, Integer::sum));
         List<SystemUserOrg> primaryRelations = relations.stream()
-                .filter(relation -> Boolean.TRUE.equals(relation.getPrimary()))
+                .filter(relation -> Boolean.TRUE.equals(relation.getPrimaryOrg()))
                 .toList();
         Map<Long, SystemOrg> orgs = orgQueryService.requireOrgs(
                 primaryRelations.stream().map(SystemUserOrg::getOrgId).toList()
@@ -168,28 +168,28 @@ public class UserOrgService {
         }
         return userOrgMapper.selectList(new LambdaQueryWrapper<SystemUserOrg>()
                 .in(SystemUserOrg::getUserId, userIds)
-                .orderByDesc(SystemUserOrg::getPrimary)
+                .orderByDesc(SystemUserOrg::getPrimaryOrg)
                 .orderByAsc(SystemUserOrg::getId));
     }
 
     private Set<Long> validate(Collection<Long> requestedOrgIds, Long primaryOrgId) {
         if (requestedOrgIds == null || requestedOrgIds.isEmpty()) {
-            throw PlatformException.badRequest("至少需要选择一个组织归属");
+            throw PlatformException.badRequest("至少需要选择一个归属组织");
         }
         if (requestedOrgIds.size() > UserOrgConstants.MAX_ORG_COUNT) {
             throw PlatformException.badRequest(
                     "单个用户最多归属 " + UserOrgConstants.MAX_ORG_COUNT + " 个组织"
             );
         }
-        if (requestedOrgIds.contains(null)) {
+        if (requestedOrgIds.stream().anyMatch(Objects::isNull)) {
             throw PlatformException.badRequest("组织主键不能为空");
         }
         Set<Long> orgIds = new LinkedHashSet<>(requestedOrgIds);
         if (orgIds.size() != requestedOrgIds.size()) {
-            throw PlatformException.badRequest("组织归属不能重复");
+            throw PlatformException.badRequest("归属组织不能重复");
         }
         if (primaryOrgId == null || !orgIds.contains(primaryOrgId)) {
-            throw PlatformException.badRequest("主归属必须包含在组织归属中");
+            throw PlatformException.badRequest("主组织必须包含在归属组织中");
         }
         return orgIds;
     }
@@ -198,7 +198,7 @@ public class UserOrgService {
         SystemUserOrg relation = new SystemUserOrg();
         relation.setUserId(userId);
         relation.setOrgId(orgId);
-        relation.setPrimary(primary);
+        relation.setPrimaryOrg(primary);
         return relation;
     }
 
@@ -211,7 +211,7 @@ public class UserOrgService {
     private void requirePositiveIds(Long userId, Long primaryOrgId) {
         if (userId == null || userId <= 0
                 || primaryOrgId == null || primaryOrgId <= 0) {
-            throw new IllegalArgumentException("用户和主归属组织主键必须大于 0");
+            throw new IllegalArgumentException("用户和主组织主键必须大于 0");
         }
     }
 }
