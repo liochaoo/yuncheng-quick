@@ -12,6 +12,8 @@ import com.yuncheng.system.login.auth.service.AuthenticationService;
 import com.yuncheng.system.login.auth.service.LoginLogRecorder;
 import com.yuncheng.system.login.auth.support.RefreshCookieManager;
 import com.yuncheng.system.login.security.service.LoginSecurityService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** 登录、刷新和退出接口。 */
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/auth")
+@Tag(name = "Web 登录认证")
 public class AuthController {
 
     private static final Set<ClientType> CLIENT_TYPES = Set.of(ClientType.WEB);
@@ -49,6 +52,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "登录")
     public ApiResponse<TokenResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest servletRequest,
@@ -72,6 +76,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    @Operation(summary = "刷新访问令牌")
     public ApiResponse<TokenResponse> refresh(
             HttpServletRequest request,
             HttpServletResponse response
@@ -82,6 +87,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "退出登录")
     public ApiResponse<Void> logout(
             HttpServletRequest request,
             HttpServletResponse response

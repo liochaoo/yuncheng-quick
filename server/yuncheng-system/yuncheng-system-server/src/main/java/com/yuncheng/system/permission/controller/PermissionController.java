@@ -11,6 +11,8 @@ import com.yuncheng.system.permission.dto.RolePermissionRequest;
 import com.yuncheng.system.permission.dto.RolePermissionResponse;
 import com.yuncheng.system.permission.service.PermissionCommandService;
 import com.yuncheng.system.permission.service.PermissionQueryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/permissions")
+@Tag(name = "权限管理")
 public class PermissionController {
 
     private final PermissionQueryService queryService;
@@ -44,12 +47,14 @@ public class PermissionController {
     }
 
     @GetMapping("/menu-tree")
+    @Operation(summary = "查询权限菜单树")
     @RequirePermission(AuthorizationPermissionCodes.QUERY)
     public ApiResponse<List<PermissionMenuNode>> menuTree() {
         return ApiResponse.success(queryService.menuTree());
     }
 
     @GetMapping("/roles/{roleId}")
+    @Operation(summary = "查询角色权限")
     @RequirePermission(AuthorizationPermissionCodes.QUERY)
     public ApiResponse<RolePermissionResponse> rolePermission(@PathVariable @Positive Long roleId) {
         return ApiResponse.success(queryService.rolePermission(roleId));

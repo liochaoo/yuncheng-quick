@@ -103,9 +103,6 @@ dromara:
         bucket-name: ${PLATFORM_FILE_ALIYUN_OSS_BUCKET_NAME:change-me}
 
 platform:
-  openapi:
-    # 本地开发默认开启；关闭后不注册原始 OpenAPI 文档端点。
-    enabled: ${PLATFORM_OPENAPI_ENABLED:true}
   experience:
     # 体验环境标识仅用于前端提供基础操作保护，不作为接口安全边界。
     enabled: ${PLATFORM_EXPERIENCE_ENABLED:false}

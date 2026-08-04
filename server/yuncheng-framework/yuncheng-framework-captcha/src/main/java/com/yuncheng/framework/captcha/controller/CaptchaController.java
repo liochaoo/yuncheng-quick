@@ -12,6 +12,8 @@ import com.yuncheng.framework.captcha.service.CaptchaGenerationRateLimiter;
 import com.yuncheng.framework.captcha.service.CaptchaVerificationService;
 import com.yuncheng.framework.web.client.ClientRequestInfoResolver;
 import com.yuncheng.framework.web.constant.WebConstants;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** 获取并校验图形验证码。 */
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/auth/captcha")
+@Tag(name = "图形验证码")
 public class CaptchaController {
 
     private final ImageCaptchaApplication captchaApplication;
@@ -42,6 +45,7 @@ public class CaptchaController {
     }
 
     @PostMapping("/get")
+    @Operation(summary = "生成图形验证码")
     public ApiResponse<ImageCaptchaVO> get(
             @RequestParam CaptchaScene scene,
             HttpServletRequest request
@@ -51,6 +55,7 @@ public class CaptchaController {
     }
 
     @PostMapping("/check")
+    @Operation(summary = "校验图形验证码")
     public ApiResponse<CaptchaVerificationResponse> check(
             @RequestParam CaptchaScene scene,
             @RequestBody CaptchaCheckRequest request

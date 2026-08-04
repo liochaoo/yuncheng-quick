@@ -17,6 +17,8 @@ import com.yuncheng.system.organization.dto.OrgUniquenessCheckResult;
 import com.yuncheng.system.organization.service.OrgCommandService;
 import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.organization.service.OrgUniquenessService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/orgs")
+@Tag(name = "组织管理")
 public class OrgManagementController {
 
     private final OrgQueryService queryService;
@@ -52,6 +55,7 @@ public class OrgManagementController {
     }
 
     @GetMapping
+    @Operation(summary = "查询组织列表")
     @RequirePermission(OrgPermissionCodes.QUERY)
     public ApiResponse<List<OrgItem>> list(
             @Valid OrgListQuery query
@@ -60,6 +64,7 @@ public class OrgManagementController {
     }
 
     @GetMapping("/children")
+    @Operation(summary = "查询下级组织")
     @RequirePermission(OrgPermissionCodes.QUERY)
     public ApiResponse<List<OrgItem>> children(
             @RequestParam(required = false)
@@ -70,6 +75,7 @@ public class OrgManagementController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "查询组织详情")
     @RequirePermission(OrgPermissionCodes.QUERY)
     public ApiResponse<OrgDetail> detail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.detail(id));
@@ -83,6 +89,7 @@ public class OrgManagementController {
     }
 
     @PostMapping("/uniqueness-check")
+    @Operation(summary = "校验组织唯一性")
     @RequirePermission({OrgPermissionCodes.ADD, OrgPermissionCodes.EDIT})
     public ApiResponse<OrgUniquenessCheckResult> checkUniqueness(
             @Valid @RequestBody OrgUniquenessCheckRequest request
@@ -104,6 +111,7 @@ public class OrgManagementController {
     }
 
     @GetMapping("/{id}/move-impact")
+    @Operation(summary = "查询组织移动影响")
     @RequirePermission(OrgPermissionCodes.MOVE)
     public ApiResponse<OrgMoveImpact> moveImpact(
             @PathVariable @Positive Long id,

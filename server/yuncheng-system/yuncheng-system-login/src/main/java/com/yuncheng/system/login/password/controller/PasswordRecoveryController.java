@@ -7,6 +7,7 @@ import com.yuncheng.system.login.auth.support.RefreshCookieManager;
 import com.yuncheng.system.login.password.dto.PasswordEmailCodeRequest;
 import com.yuncheng.system.login.password.dto.PasswordResetRequest;
 import com.yuncheng.system.login.password.service.PasswordRecoveryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** 邮箱找回密码接口。 */
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/auth/password")
+@Tag(name = "密码找回")
 public class PasswordRecoveryController {
 
     private final PasswordRecoveryService recoveryService;

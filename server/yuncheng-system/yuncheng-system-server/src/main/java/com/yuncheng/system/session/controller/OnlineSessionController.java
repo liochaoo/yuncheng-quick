@@ -10,6 +10,8 @@ import com.yuncheng.system.session.dto.OnlineSessionIdsRequest;
 import com.yuncheng.system.session.dto.OnlineSessionItem;
 import com.yuncheng.system.session.dto.OnlineSessionPageQuery;
 import com.yuncheng.system.session.service.OnlineSessionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/sessions")
+@Tag(name = "在线会话")
 public class OnlineSessionController {
 
     private final OnlineSessionService onlineSessionService;
@@ -35,12 +38,14 @@ public class OnlineSessionController {
     }
 
     @GetMapping
+    @Operation(summary = "分页查询在线会话")
     @RequirePermission(OnlineSessionPermissionCodes.QUERY)
     public ApiResponse<PageResult<OnlineSessionItem>> page(@Valid OnlineSessionPageQuery query) {
         return ApiResponse.success(onlineSessionService.page(query));
     }
 
     @GetMapping("/{sessionId}")
+    @Operation(summary = "查询在线会话详情")
     @RequirePermission(OnlineSessionPermissionCodes.QUERY)
     public ApiResponse<OnlineSessionItem> detail(
             @PathVariable

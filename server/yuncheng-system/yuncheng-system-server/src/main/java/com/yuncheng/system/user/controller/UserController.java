@@ -21,6 +21,8 @@ import com.yuncheng.system.user.service.UserCommandService;
 import com.yuncheng.system.user.service.UserPasswordService;
 import com.yuncheng.system.user.service.UserQueryService;
 import com.yuncheng.system.user.service.UserUniquenessService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/users")
+@Tag(name = "用户管理")
 public class UserController {
 
     private final UserQueryService queryService;
@@ -57,18 +60,21 @@ public class UserController {
     }
 
     @GetMapping
+    @Operation(summary = "分页查询用户")
     @RequirePermission(UserPermissionCodes.QUERY)
     public ApiResponse<PageResult<UserListItem>> page(@Valid UserPageQuery query) {
         return ApiResponse.success(queryService.page(query));
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "查询用户详情")
     @RequirePermission(UserPermissionCodes.QUERY)
     public ApiResponse<UserDetail> detail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.detail(id));
     }
 
     @GetMapping("/{id}/form")
+    @Operation(summary = "查询用户编辑表单数据")
     @RequirePermission(UserPermissionCodes.EDIT)
     public ApiResponse<UserFormData> formData(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.formData(id));
@@ -82,6 +88,7 @@ public class UserController {
     }
 
     @PostMapping("/uniqueness-check")
+    @Operation(summary = "校验用户唯一性")
     @RequirePermission({UserPermissionCodes.ADD, UserPermissionCodes.EDIT})
     public ApiResponse<UserUniquenessCheckResult> checkUniqueness(
             @Valid @RequestBody UserUniquenessCheckRequest request

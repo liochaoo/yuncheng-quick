@@ -9,6 +9,8 @@ import com.yuncheng.system.organization.dto.OrgItem;
 import com.yuncheng.system.organization.dto.OrgListQuery;
 import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.user.constant.UserPermissionCodes;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/orgs")
+@Tag(name = "组织选项")
 public class OrgOptionController {
 
     private final OrgQueryService queryService;
@@ -34,6 +37,7 @@ public class OrgOptionController {
     }
 
     @GetMapping
+    @Operation(summary = "查询下级组织选项")
     @RequirePermission(UserPermissionCodes.QUERY)
     public ApiResponse<List<OrgItem>> children(
             @RequestParam(required = false)
@@ -44,6 +48,7 @@ public class OrgOptionController {
     }
 
     @GetMapping("/search")
+    @Operation(summary = "搜索组织选项")
     @RequirePermission(UserPermissionCodes.QUERY)
     public ApiResponse<List<OrgItem>> search(
             @Valid OrgListQuery query
@@ -52,12 +57,14 @@ public class OrgOptionController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "查询组织选项")
     @RequirePermission(UserPermissionCodes.QUERY)
     public ApiResponse<OrgContextItem> item(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.contextItems(List.of(id)).getFirst());
     }
 
     @PostMapping("/by-ids")
+    @Operation(summary = "批量查询组织选项")
     @RequirePermission(UserPermissionCodes.QUERY)
     public ApiResponse<List<OrgContextItem>> items(
             @Valid @RequestBody OrgIdsRequest request

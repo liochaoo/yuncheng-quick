@@ -96,3 +96,21 @@ VALUES
     (100000000000000204, 100000000000000200, 'BUTTON', '删除组织', NULL, NULL,
      NULL, NULL, 'system:organization:delete', 40, NULL, 0,
      CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0);
+
+INSERT INTO system_menu (
+    id, parent_id, menu_type, menu_name, route_name, route_path,
+    component_path, redirect, permission_code, sort_order, icon,
+    affix_tab, full_path_key, created_at, created_by, updated_at, updated_by
+)
+VALUES
+    (
+        100000000000000300, NULL, 'CATALOG', '开发工具', 'Development', '/development',
+        NULL, '/development/openapi', NULL, 30, 'lucide:code-xml',
+        0, 1, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0
+    ),
+    (
+        100000000000000310, 100000000000000300, 'MENU', '接口文档', 'DevelopmentOpenApi',
+        '/development/openapi', '/development/openapi/index', NULL,
+        'system:openapi:query', 10, 'lucide:file-json-2',
+        0, 0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0
+    );

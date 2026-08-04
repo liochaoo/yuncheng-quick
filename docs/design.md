@@ -357,6 +357,8 @@ SPRING_PROFILES_ACTIVE=prod
 - `PLATFORM_OPENAPI_ENABLED`（开发环境默认开启，生产环境默认关闭）
 - 文件存储和邮件服务相关环境变量
 
+前端面向当前仍在维护的现代浏览器，最低支持 Chrome 111、Edge 111、Firefox 114、Safari 16.4 和 iOS Safari 16.4。构建和压缩目标统一使用 `es2020`，允许第三方依赖使用这些浏览器已经原生支持的现代 JavaScript 语法（包括 BigInt），不再保留名义上的 ES2015 兼容承诺。
+
 公开仓库中的默认值仅用于本地开发。部署到可联网环境时，应使用独立凭据、HTTPS、访问控制、资源限制、日志保留策略和备份方案。
 
 ## 16. 扩展方式

@@ -15,6 +15,8 @@ import com.yuncheng.system.file.dto.FileListItem;
 import com.yuncheng.system.file.dto.FilePageQuery;
 import com.yuncheng.system.file.service.SystemFileCommandService;
 import com.yuncheng.system.file.service.SystemFileQueryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -35,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/files")
+@Tag(name = "系统文件管理")
 public class SystemFileController extends AbstractFileContentController {
 
     private final FileService fileService;
@@ -52,12 +55,14 @@ public class SystemFileController extends AbstractFileContentController {
     }
 
     @GetMapping
+    @Operation(summary = "分页查询系统文件")
     @RequirePermission(FilePermissionCodes.QUERY)
     public ApiResponse<PageResult<FileListItem>> page(@Valid FilePageQuery query) {
         return ApiResponse.success(queryService.page(query));
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "查询系统文件详情")
     @RequirePermission(FilePermissionCodes.QUERY)
     public ApiResponse<FileDetail> detail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.detail(id));
@@ -74,6 +79,7 @@ public class SystemFileController extends AbstractFileContentController {
     }
 
     @GetMapping("/{id}/preview")
+    @Operation(summary = "预览系统文件")
     @RequirePermission(FilePermissionCodes.PREVIEW)
     public void preview(
             @PathVariable @Positive Long id,
@@ -83,6 +89,7 @@ public class SystemFileController extends AbstractFileContentController {
     }
 
     @GetMapping("/{id}/download")
+    @Operation(summary = "下载系统文件")
     @RequirePermission(FilePermissionCodes.DOWNLOAD)
     public void download(
             @PathVariable @Positive Long id,

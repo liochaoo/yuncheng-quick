@@ -15,6 +15,8 @@ import com.yuncheng.system.log.dto.OperationLogItem;
 import com.yuncheng.system.log.dto.OperationLogPageQuery;
 import com.yuncheng.system.log.service.SystemLogCleanService;
 import com.yuncheng.system.log.service.SystemLogQueryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/logs")
+@Tag(name = "系统日志")
 public class SystemLogController {
 
     private final SystemLogQueryService queryService;
@@ -43,30 +46,35 @@ public class SystemLogController {
     }
 
     @GetMapping("/login")
+    @Operation(summary = "分页查询登录日志")
     @RequirePermission(LogPermissionCodes.QUERY)
     public ApiResponse<PageResult<LoginLogItem>> loginPage(@Valid LoginLogPageQuery query) {
         return ApiResponse.success(queryService.loginPage(query));
     }
 
     @GetMapping("/login/{id}")
+    @Operation(summary = "查询登录日志详情")
     @RequirePermission(LogPermissionCodes.QUERY)
     public ApiResponse<LoginLogItem> loginDetail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.loginDetail(id));
     }
 
     @GetMapping("/operation")
+    @Operation(summary = "分页查询操作日志")
     @RequirePermission(LogPermissionCodes.QUERY)
     public ApiResponse<PageResult<OperationLogItem>> operationPage(@Valid OperationLogPageQuery query) {
         return ApiResponse.success(queryService.operationPage(query));
     }
 
     @GetMapping("/operation/{id}")
+    @Operation(summary = "查询操作日志详情")
     @RequirePermission(LogPermissionCodes.QUERY)
     public ApiResponse<OperationLogItem> operationDetail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.operationDetail(id));
     }
 
     @GetMapping("/clean-policy")
+    @Operation(summary = "查询日志清理策略")
     @RequirePermission(LogPermissionCodes.CLEAN)
     public ApiResponse<LogCleanPolicy> cleanPolicy() {
         return ApiResponse.success(cleanService.policy());

@@ -6,6 +6,7 @@ import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.system.login.registration.dto.RegisterEmailCodeRequest;
 import com.yuncheng.system.login.registration.dto.RegisterRequest;
 import com.yuncheng.system.login.registration.service.RegistrationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** 用户注册接口。 */
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/auth/register")
+@Tag(name = "用户注册")
 public class RegistrationController {
 
     private final RegistrationService registrationService;

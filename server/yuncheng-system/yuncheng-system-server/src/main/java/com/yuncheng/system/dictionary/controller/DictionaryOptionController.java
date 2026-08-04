@@ -4,6 +4,8 @@ import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.system.dictionary.dto.DictionaryOptionItem;
 import com.yuncheng.system.dictionary.service.DictionaryQueryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/dictionaries")
+@Tag(name = "数据字典")
 public class DictionaryOptionController {
 
     private final DictionaryQueryService queryService;
@@ -26,6 +29,7 @@ public class DictionaryOptionController {
     }
 
     @GetMapping("/{dictionaryCode}/options")
+    @Operation(summary = "查询数据字典选项")
     public ApiResponse<List<DictionaryOptionItem>> options(
             @PathVariable
             @Size(max = 50, message = "字典编码不能超过 50 个字符")

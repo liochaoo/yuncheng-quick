@@ -14,6 +14,8 @@ import com.yuncheng.system.menu.dto.MenuUniquenessCheckResult;
 import com.yuncheng.system.menu.service.MenuCommandService;
 import com.yuncheng.system.menu.service.MenuQueryService;
 import com.yuncheng.system.menu.service.MenuUniquenessService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/menus")
+@Tag(name = "菜单管理")
 public class MenuController {
 
     private final MenuQueryService queryService;
@@ -48,12 +51,14 @@ public class MenuController {
     }
 
     @GetMapping
+    @Operation(summary = "查询菜单树")
     @RequirePermission(MenuPermissionCodes.QUERY)
     public ApiResponse<List<MenuItem>> tree() {
         return ApiResponse.success(queryService.tree());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "查询菜单详情")
     @RequirePermission(MenuPermissionCodes.QUERY)
     public ApiResponse<MenuDetail> detail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.detail(id));
@@ -67,6 +72,7 @@ public class MenuController {
     }
 
     @PostMapping("/uniqueness-check")
+    @Operation(summary = "校验菜单唯一性")
     @RequirePermission({MenuPermissionCodes.ADD, MenuPermissionCodes.EDIT})
     public ApiResponse<MenuUniquenessCheckResult> checkUniqueness(
             @Valid @RequestBody MenuUniquenessCheckRequest request
@@ -92,6 +98,7 @@ public class MenuController {
     }
 
     @GetMapping("/{id}/deletion-impact")
+    @Operation(summary = "查询菜单删除影响")
     @RequirePermission(MenuPermissionCodes.DELETE)
     public ApiResponse<MenuDeleteImpact> deletionImpact(@PathVariable @Positive Long id) {
         return ApiResponse.success(commandService.deletionImpact(id));

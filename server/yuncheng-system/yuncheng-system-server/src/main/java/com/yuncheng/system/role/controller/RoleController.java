@@ -25,6 +25,8 @@ import com.yuncheng.system.role.service.RoleQueryService;
 import com.yuncheng.system.role.service.RoleUserService;
 import com.yuncheng.system.role.service.RoleUniquenessService;
 import com.yuncheng.system.user.constant.UserPermissionCodes;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -42,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/roles")
+@Tag(name = "角色管理")
 public class RoleController {
 
     private final RoleQueryService queryService;
@@ -62,12 +65,14 @@ public class RoleController {
     }
 
     @GetMapping
+    @Operation(summary = "分页查询角色")
     @RequirePermission(RolePermissionCodes.QUERY)
     public ApiResponse<PageResult<RoleListItem>> page(@Valid RolePageQuery query) {
         return ApiResponse.success(queryService.page(query));
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "查询角色详情")
     @RequirePermission(RolePermissionCodes.QUERY)
     public ApiResponse<RoleDetail> detail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.detail(id));
@@ -81,6 +86,7 @@ public class RoleController {
     }
 
     @PostMapping("/uniqueness-check")
+    @Operation(summary = "校验角色唯一性")
     @RequirePermission({RolePermissionCodes.ADD, RolePermissionCodes.EDIT})
     public ApiResponse<RoleUniquenessCheckResult> checkUniqueness(
             @Valid @RequestBody RoleUniquenessCheckRequest request
@@ -117,6 +123,7 @@ public class RoleController {
     }
 
     @GetMapping("/options")
+    @Operation(summary = "分页查询角色选项")
     @RequirePermission({
             RolePermissionCodes.QUERY,
             UserPermissionCodes.QUERY,
@@ -127,6 +134,7 @@ public class RoleController {
     }
 
     @PostMapping("/options/by-ids")
+    @Operation(summary = "按主键查询角色选项")
     @RequirePermission({
             RolePermissionCodes.QUERY,
             UserPermissionCodes.QUERY,
@@ -137,6 +145,7 @@ public class RoleController {
     }
 
     @GetMapping("/{id}/users")
+    @Operation(summary = "分页查询角色用户")
     @RequirePermission(RolePermissionCodes.ASSIGN_USER)
     public ApiResponse<PageResult<RoleUserListItem>> users(
             @PathVariable @Positive Long id,
@@ -146,6 +155,7 @@ public class RoleController {
     }
 
     @GetMapping("/{id}/candidate-users")
+    @Operation(summary = "分页查询待选角色用户")
     @RequirePermission(RolePermissionCodes.ASSIGN_USER)
     public ApiResponse<PageResult<RoleUserListItem>> candidateUsers(
             @PathVariable @Positive Long id,

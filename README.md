@@ -179,6 +179,8 @@ data/files
 - OpenAPI 文档生产环境默认关闭；确需开放时设置 `PLATFORM_OPENAPI_ENABLED=true`，并只向具备接口文档权限的账号授权
 - 不要将真实密码、Token、密钥或生产配置提交到仓库
 
+前端面向仍在维护的现代浏览器，最低支持 Chrome 111、Edge 111、Firefox 114、Safari 16.4 和 iOS Safari 16.4。项目不承诺兼容 Internet Explorer 或仅支持 ES2015 的历史浏览器。
+
 ## 品牌与二次开发配置
 
 页面品牌和部署相关标识集中在配置文件中，普通的品牌替换不需要修改业务源码：

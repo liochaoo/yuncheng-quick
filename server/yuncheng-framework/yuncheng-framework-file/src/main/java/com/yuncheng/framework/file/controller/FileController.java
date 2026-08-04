@@ -6,6 +6,8 @@ import com.yuncheng.framework.file.service.CurrentUserFileService;
 import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -28,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/files")
+@Tag(name = "通用文件")
 public class FileController extends AbstractFileContentController {
 
     private final CurrentUserFileService currentUserFileService;
@@ -57,11 +60,13 @@ public class FileController extends AbstractFileContentController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "查询文件详情")
     public ApiResponse<FileRecord> detail(@PathVariable @Positive Long id) {
         return ApiResponse.success(currentUserFileService.get(id));
     }
 
     @GetMapping
+    @Operation(summary = "查询文件列表")
     public ApiResponse<List<FileRecord>> list(
             @RequestParam String businessType,
             @RequestParam @Positive Long businessId,
@@ -92,6 +97,7 @@ public class FileController extends AbstractFileContentController {
     }
 
     @GetMapping("/{id}/preview")
+    @Operation(summary = "预览文件")
     public void preview(
             @PathVariable @Positive Long id,
             HttpServletResponse response
@@ -100,6 +106,7 @@ public class FileController extends AbstractFileContentController {
     }
 
     @GetMapping("/{id}/download")
+    @Operation(summary = "下载文件")
     public void download(
             @PathVariable @Positive Long id,
             HttpServletResponse response

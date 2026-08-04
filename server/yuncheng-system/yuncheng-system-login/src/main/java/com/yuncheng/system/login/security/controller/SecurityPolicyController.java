@@ -4,6 +4,8 @@ import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.system.login.security.dto.SecurityPolicyResponse;
 import com.yuncheng.system.login.security.service.LoginSecurityService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** 公开当前注册、验证码和密码输入规则。 */
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/auth/security-policy")
+@Tag(name = "登录安全策略")
 public class SecurityPolicyController {
 
     private final LoginSecurityService securityService;
@@ -20,6 +23,7 @@ public class SecurityPolicyController {
     }
 
     @GetMapping
+    @Operation(summary = "查询登录安全策略")
     public ApiResponse<SecurityPolicyResponse> get() {
         return ApiResponse.success(securityService.policy());
     }

@@ -63,12 +63,13 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
               ? {
                   compress: {
                     dropDebugger: true,
+                    target: 'es2020',
                   },
                 }
               : false,
           },
         },
-        target: 'es2015',
+        target: 'es2020',
       },
       css: createCssOptions(injectGlobalScss),
       plugins,

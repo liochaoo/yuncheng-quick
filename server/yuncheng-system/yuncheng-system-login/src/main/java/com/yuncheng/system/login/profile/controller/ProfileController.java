@@ -10,6 +10,8 @@ import com.yuncheng.system.login.profile.dto.ProfileEmailCodeRequest;
 import com.yuncheng.system.login.profile.dto.ProfileInfoResponse;
 import com.yuncheng.system.login.profile.dto.ProfilePasswordChangeRequest;
 import com.yuncheng.system.login.profile.service.ProfileService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 /** 当前登录用户个人中心接口。 */
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/user/profile")
+@Tag(name = "个人中心")
 public class ProfileController {
 
     private final ProfileService profileService;
@@ -39,6 +42,7 @@ public class ProfileController {
     }
 
     @GetMapping
+    @Operation(summary = "查询个人资料")
     public ApiResponse<ProfileInfoResponse> profile() {
         return ApiResponse.success(profileService.getProfile());
     }

@@ -104,9 +104,6 @@ dromara:
         bucket-name: ${PLATFORM_FILE_ALIYUN_OSS_BUCKET_NAME:change-me}
 
 platform:
-  openapi:
-    # 生产环境默认关闭，需要时由部署方显式开启。
-    enabled: ${PLATFORM_OPENAPI_ENABLED:false}
   experience:
     # 体验环境标识仅用于前端提供基础操作保护，不作为接口安全边界。
     enabled: ${PLATFORM_EXPERIENCE_ENABLED:false}

@@ -23,6 +23,8 @@ import com.yuncheng.system.dictionary.dto.DictionaryUpdateRequest;
 import com.yuncheng.system.dictionary.service.DictionaryCommandService;
 import com.yuncheng.system.dictionary.service.DictionaryQueryService;
 import com.yuncheng.system.dictionary.service.DictionaryUniquenessService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping(WebConstants.API_PREFIX + "/system/dictionaries")
+@Tag(name = "字典管理")
 public class DictionaryManagementController {
 
     private final DictionaryQueryService queryService;
@@ -56,6 +59,7 @@ public class DictionaryManagementController {
     }
 
     @GetMapping
+    @Operation(summary = "分页查询数据字典")
     @RequirePermission(DictionaryPermissionCodes.QUERY)
     public ApiResponse<PageResult<DictionaryListItem>> page(
             @Valid DictionaryPageQuery query
@@ -64,6 +68,7 @@ public class DictionaryManagementController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "查询数据字典详情")
     @RequirePermission(DictionaryPermissionCodes.QUERY)
     public ApiResponse<DictionaryDetail> detail(@PathVariable @Positive Long id) {
         return ApiResponse.success(queryService.detail(id));
@@ -77,6 +82,7 @@ public class DictionaryManagementController {
     }
 
     @PostMapping("/uniqueness-check")
+    @Operation(summary = "校验数据字典唯一性")
     @RequirePermission(DictionaryPermissionCodes.ADD)
     public ApiResponse<DictionaryUniquenessCheckResult> checkUniqueness(
             @Valid @RequestBody DictionaryUniquenessCheckRequest request
@@ -106,6 +112,7 @@ public class DictionaryManagementController {
     }
 
     @GetMapping("/{dictionaryId}/options")
+    @Operation(summary = "分页查询字典选项")
     @RequirePermission(DictionaryPermissionCodes.QUERY)
     public ApiResponse<PageResult<DictionaryOptionListItem>> pageOptions(
             @PathVariable @Positive Long dictionaryId,
@@ -115,6 +122,7 @@ public class DictionaryManagementController {
     }
 
     @GetMapping("/{dictionaryId}/options/{optionId}")
+    @Operation(summary = "查询字典选项详情")
     @RequirePermission(DictionaryPermissionCodes.QUERY)
     public ApiResponse<DictionaryOptionDetail> optionDetail(
             @PathVariable @Positive Long dictionaryId,
@@ -134,6 +142,7 @@ public class DictionaryManagementController {
     }
 
     @PostMapping("/{dictionaryId}/options/uniqueness-check")
+    @Operation(summary = "校验字典选项唯一性")
     @RequirePermission(DictionaryPermissionCodes.ADD)
     public ApiResponse<DictionaryUniquenessCheckResult> checkOptionUniqueness(
             @PathVariable @Positive Long dictionaryId,
