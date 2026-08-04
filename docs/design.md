@@ -2,9 +2,9 @@
 
 > 项目：Yuncheng Quick
 >
-> 版本：v0.1.0-alpha.1
+> 版本：v0.1.0-alpha.2（开发中）
 >
-> 更新日期：2026-07-30
+> 更新日期：2026-08-04
 
 本文面向希望了解、评估或扩展云程快速开发平台的使用者，介绍当前版本已经形成的工程结构、核心模块、认证授权模型和运行边界。具体行为以当前版本代码为准。
 
@@ -99,7 +99,7 @@ yuncheng-quick
 | `yuncheng-framework` | Web、安全、Redis、MyBatis、文件、邮件、验证码、日志、任务和 OpenAPI 等基础设施 |
 | `yuncheng-system-api` | 系统领域对其他模块公开的接口和数据契约 |
 | `yuncheng-system-login` | 登录、刷新、退出、注册、找回密码和个人中心 |
-| `yuncheng-system-server` | 用户、角色、菜单、权限、日志、字典、安全策略、文件和在线会话 |
+| `yuncheng-system-server` | 用户、组织、角色、菜单、权限、日志、字典、安全策略、文件和在线会话 |
 | `yuncheng-init` | 管理员、保留角色和系统基础数据初始化 |
 | `yuncheng-demo` | 开发演示和演示数据能力 |
 | `yuncheng-boot` | 应用入口、配置和 Flyway 数据库迁移 |
@@ -186,6 +186,14 @@ web/apps/web-ele/src/api/request.ts
 ```
 
 前端请求层统一处理响应解包、认证失败和 Access Token 刷新，页面直接使用解包后的业务数据。
+
+### 7.1 OpenAPI 接口文档
+
+平台使用 Springdoc 生成 OpenAPI 3.1 文档，并在现有后台页面中通过 Scalar 提供交互界面。文档只扫描 `/api/**` 业务接口，原始 JSON 和 YAML 端点沿用 Springdoc 的 `/v3/api-docs` 路径，Vite 与 Nginx 将这些端点转发到后端，保证前端按同源方式访问。
+
+接口文档使用独立权限码 `system:openapi:query`。菜单、启用状态接口和原始文档端点均要求用户登录并具有该权限，关闭文档能力时仍保留菜单入口并显示当前环境未启用。开发环境默认开启，生产环境默认关闭，可通过 `PLATFORM_OPENAPI_ENABLED` 显式控制。
+
+OpenAPI Framework 模块集中补充接口分组、Bearer Token 认证方式、通用错误响应和权限码扩展信息。业务接口优先复用已有操作日志名称生成摘要，避免为文档展示批量增加与业务实现重复的注解。
 
 ## 8. 用户、角色、菜单与权限
 

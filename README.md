@@ -160,6 +160,8 @@ http://localhost:7777
 
 该账号仅用于本地开发。部署任何可联网访问的环境前，必须通过 `PLATFORM_INIT_ADMIN_PASSWORD` 设置独立的高强度密码。
 
+开发环境默认开启接口文档，登录后可通过“开发工具 → 接口文档”访问。
+
 ## 文件存储
 
 文件默认保存在后端运行目录下的：
@@ -176,7 +178,7 @@ data/files
 - 生产部署通过 `SPRING_PROFILES_ACTIVE=prod` 启用生产 Profile
 - 生产 Profile 启动前必须配置 `DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`PLATFORM_AUTH_JWT_SECRET` 和 `PLATFORM_INIT_ADMIN_PASSWORD`
 - Redis、邮件和对象存储凭据应根据部署环境单独配置
-- OpenAPI 文档生产环境默认关闭；确需开放时设置 `PLATFORM_OPENAPI_ENABLED=true`，并只向具备接口文档权限的账号授权
+- OpenAPI 文档生产环境默认关闭；需要时通过 `PLATFORM_OPENAPI_ENABLED=true` 开启，并仅向具备接口文档权限的账号授权
 - 不要将真实密码、Token、密钥或生产配置提交到仓库
 
 前端面向仍在维护的现代浏览器，最低支持 Chrome 111、Edge 111、Firefox 114、Safari 16.4 和 iOS Safari 16.4。项目不承诺兼容 Internet Explorer 或仅支持 ES2015 的历史浏览器。
