@@ -15,6 +15,7 @@ import { getRoleOptionsByIdsApi } from '#/api/system/role';
 import { getUserDetailApi } from '#/api/system/user';
 import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
+import { buildRecordDetailItems } from '#/components/detail/record-detail-items';
 import EnabledStatus from '#/components/display/enabled-status.vue';
 import { OrgAssignmentList } from '#/components/organization';
 import { useBusinessDetailDrawer } from '#/hooks/use-business-detail-drawer';
@@ -50,21 +51,7 @@ const basicItems = computed<DetailTableItem[]>(() => {
   ];
 });
 
-const recordItems = computed<DetailTableItem[]>(() => {
-  const user = detail.value?.user;
-  return [
-    {
-      key: 'createdAt',
-      label: '创建时间',
-      value: formatDateTime(user?.createdAt),
-    },
-    {
-      key: 'updatedAt',
-      label: '更新时间',
-      value: formatDateTime(user?.updatedAt),
-    },
-  ];
-});
+const recordItems = computed(() => buildRecordDetailItems(detail.value?.user));
 
 const securityItems = computed<DetailTableItem[]>(() => {
   const user = detail.value?.user;

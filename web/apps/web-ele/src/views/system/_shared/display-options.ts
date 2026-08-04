@@ -1,5 +1,4 @@
 import type { MenuType } from '#/api/system/menu';
-import type { RoleType } from '#/api/system/types';
 import type { EnumTagOptions } from '#/components/display/enum-tag.types';
 
 export const MENU_TYPE_TAG_OPTIONS = {
@@ -8,11 +7,6 @@ export const MENU_TYPE_TAG_OPTIONS = {
   EMBEDDED: { label: '内嵌', type: 'warning' },
   LINK: { label: '链接', type: 'success' },
   BUTTON: { label: '按钮', type: 'danger' },
-} satisfies EnumTagOptions;
-
-export const ROLE_TYPE_TAG_OPTIONS = {
-  SYSTEM: { label: '系统角色', type: 'warning' },
-  CUSTOM: { label: '自定义', type: 'info' },
 } satisfies EnumTagOptions;
 
 export const CLIENT_TYPE_TAG_OPTIONS = {
@@ -28,13 +22,6 @@ export const MENU_TYPE_SELECT_OPTIONS = Object.entries(
 ).map(([value, option]) => ({
   label: option.label,
   value: value as MenuType,
-}));
-
-export const ROLE_TYPE_SELECT_OPTIONS = Object.entries(
-  ROLE_TYPE_TAG_OPTIONS,
-).map(([value, option]) => ({
-  label: option.label,
-  value: value as RoleType,
 }));
 
 export const CLIENT_TYPE_SELECT_OPTIONS = Object.entries(

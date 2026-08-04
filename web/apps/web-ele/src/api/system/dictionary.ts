@@ -1,3 +1,4 @@
+import type { AvailabilityResult } from '#/api/system/types';
 import type { PageResult } from '#/api/types';
 
 import { requestClient } from '#/api/request';
@@ -73,10 +74,6 @@ export interface DictionaryOptionUpdateRequest {
   sortOrder: number;
 }
 
-interface UniquenessCheckResult {
-  available: boolean;
-}
-
 export async function pageDictionariesApi(params: DictionaryPageParams) {
   return requestClient.get<PageResult<DictionaryListItem>>(
     '/system/dictionaries',
@@ -100,7 +97,7 @@ export async function updateDictionaryApi(
 }
 
 export async function checkDictionaryCodeApi(value: string) {
-  return requestClient.post<UniquenessCheckResult>(
+  return requestClient.post<AvailabilityResult>(
     '/system/dictionaries/uniqueness-check',
     { value },
   );
@@ -154,7 +151,7 @@ export async function checkDictionaryOptionValueApi(
   dictionaryId: string,
   value: string,
 ) {
-  return requestClient.post<UniquenessCheckResult>(
+  return requestClient.post<AvailabilityResult>(
     `/system/dictionaries/${dictionaryId}/options/uniqueness-check`,
     { value },
   );

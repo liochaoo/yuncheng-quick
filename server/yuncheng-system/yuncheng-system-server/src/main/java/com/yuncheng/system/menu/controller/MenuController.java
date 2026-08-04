@@ -3,6 +3,7 @@ package com.yuncheng.system.menu.controller;
 import com.yuncheng.framework.security.authorization.annotation.RequirePermission;
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.response.ApiResponse;
+import com.yuncheng.framework.web.response.AvailabilityResponse;
 import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.system.menu.constant.MenuPermissionCodes;
 import com.yuncheng.system.menu.dto.MenuDeleteImpact;
@@ -10,7 +11,6 @@ import com.yuncheng.system.menu.dto.MenuDetail;
 import com.yuncheng.system.menu.dto.MenuItem;
 import com.yuncheng.system.menu.dto.MenuSaveRequest;
 import com.yuncheng.system.menu.dto.MenuUniquenessCheckRequest;
-import com.yuncheng.system.menu.dto.MenuUniquenessCheckResult;
 import com.yuncheng.system.menu.service.MenuCommandService;
 import com.yuncheng.system.menu.service.MenuQueryService;
 import com.yuncheng.system.menu.service.MenuUniquenessService;
@@ -74,7 +74,7 @@ public class MenuController {
     @PostMapping("/uniqueness-check")
     @Operation(summary = "校验菜单唯一性")
     @RequirePermission({MenuPermissionCodes.ADD, MenuPermissionCodes.EDIT})
-    public ApiResponse<MenuUniquenessCheckResult> checkUniqueness(
+    public ApiResponse<AvailabilityResponse> checkUniqueness(
             @Valid @RequestBody MenuUniquenessCheckRequest request
     ) {
         boolean available = uniquenessService.isAvailable(
@@ -83,7 +83,7 @@ public class MenuController {
                 request.parentId(),
                 request.id()
         );
-        return ApiResponse.success(new MenuUniquenessCheckResult(available));
+        return ApiResponse.success(new AvailabilityResponse(available));
     }
 
     @PutMapping("/{id}")

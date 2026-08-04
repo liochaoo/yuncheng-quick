@@ -1,4 +1,5 @@
 import type { OrgOption, OrgType } from '#/api/common/organization';
+import type { AvailabilityResult } from '#/api/system/types';
 
 import { requestClient } from '#/api/request';
 
@@ -76,7 +77,7 @@ export async function createOrgApi(data: OrgCreateRequest) {
 }
 
 export async function checkOrgUniquenessApi(data: OrgUniquenessCheckRequest) {
-  return requestClient.post<{ available: boolean }>(
+  return requestClient.post<AvailabilityResult>(
     '/system/orgs/uniqueness-check',
     data,
   );

@@ -4,6 +4,7 @@ import com.yuncheng.framework.security.authorization.annotation.RequirePermissio
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.framework.web.response.ApiResponse;
+import com.yuncheng.framework.web.response.AvailabilityResponse;
 import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.system.permission.constant.AuthorizationPermissionCodes;
 import com.yuncheng.system.role.constant.RolePermissionCodes;
@@ -16,7 +17,6 @@ import com.yuncheng.system.role.dto.RoleOption;
 import com.yuncheng.system.role.dto.RoleOptionPageQuery;
 import com.yuncheng.system.role.dto.RoleUpdateRequest;
 import com.yuncheng.system.role.dto.RoleUniquenessCheckRequest;
-import com.yuncheng.system.role.dto.RoleUniquenessCheckResult;
 import com.yuncheng.system.role.dto.RoleUserIdsRequest;
 import com.yuncheng.system.role.dto.RoleUserPageQuery;
 import com.yuncheng.system.role.dto.RoleUserListItem;
@@ -88,11 +88,11 @@ public class RoleController {
     @PostMapping("/uniqueness-check")
     @Operation(summary = "校验角色唯一性")
     @RequirePermission({RolePermissionCodes.ADD, RolePermissionCodes.EDIT})
-    public ApiResponse<RoleUniquenessCheckResult> checkUniqueness(
+    public ApiResponse<AvailabilityResponse> checkUniqueness(
             @Valid @RequestBody RoleUniquenessCheckRequest request
     ) {
         boolean available = uniquenessService.isAvailable(request.field(), request.value(), request.id());
-        return ApiResponse.success(new RoleUniquenessCheckResult(available));
+        return ApiResponse.success(new AvailabilityResponse(available));
     }
 
     @PutMapping("/{id}")

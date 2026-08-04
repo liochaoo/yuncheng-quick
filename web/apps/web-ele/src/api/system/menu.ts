@@ -1,4 +1,4 @@
-import type { UniquenessCheckResult } from '#/api/system/types';
+import type { AvailabilityResult } from '#/api/system/types';
 
 import { requestClient } from '#/api/request';
 
@@ -113,7 +113,7 @@ export async function updateMenuApi(id: string, data: MenuSaveRequest) {
 }
 
 export async function checkMenuUniquenessApi(data: MenuUniquenessCheckRequest) {
-  return requestClient.post<UniquenessCheckResult>(
+  return requestClient.post<AvailabilityResult>(
     '/system/menus/uniqueness-check',
     data,
   );

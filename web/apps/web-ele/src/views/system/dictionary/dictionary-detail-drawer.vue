@@ -4,11 +4,10 @@ import type { DetailTableItem } from '#/components/detail/detail-table.types';
 
 import { computed } from 'vue';
 
-import { formatDateTime } from '@vben/utils';
-
 import { getDictionaryDetailApi } from '#/api/system/dictionary';
 import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
+import { buildRecordDetailItems } from '#/components/detail/record-detail-items';
 import { useBusinessDetailDrawer } from '#/hooks/use-business-detail-drawer';
 import { BUSINESS_FORM_DRAWER_WIDTH } from '#/types/business-form';
 
@@ -36,18 +35,7 @@ const basicItems = computed<DetailTableItem[]>(() => [
   },
 ]);
 
-const recordItems = computed<DetailTableItem[]>(() => [
-  {
-    key: 'createdAt',
-    label: '创建时间',
-    value: formatDateTime(detail.value?.createdAt),
-  },
-  {
-    key: 'updatedAt',
-    label: '更新时间',
-    value: formatDateTime(detail.value?.updatedAt),
-  },
-]);
+const recordItems = computed(() => buildRecordDetailItems(detail.value));
 </script>
 
 <template>

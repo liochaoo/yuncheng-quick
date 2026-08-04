@@ -1,5 +1,5 @@
 import type { OrgType } from '#/api/common/organization';
-import type { RoleSummary, UniquenessCheckResult } from '#/api/system/types';
+import type { AvailabilityResult, RoleSummary } from '#/api/system/types';
 import type { PageResult } from '#/api/types';
 
 import { requestClient } from '#/api/request';
@@ -136,7 +136,7 @@ export async function updateUserApi(id: string, data: UserUpdateRequest) {
 }
 
 export async function checkUserUniquenessApi(data: UserUniquenessCheckRequest) {
-  return requestClient.post<UniquenessCheckResult>(
+  return requestClient.post<AvailabilityResult>(
     '/system/users/uniqueness-check',
     data,
   );

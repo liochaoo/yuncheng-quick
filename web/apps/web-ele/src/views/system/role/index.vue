@@ -19,6 +19,10 @@ import {
   pageRolesApi,
 } from '#/api/system/role';
 import EnumTag from '#/components/display/enum-tag.vue';
+import {
+  ROLE_TYPE_SELECT_OPTIONS,
+  ROLE_TYPE_TAG_OPTIONS,
+} from '#/components/role/role-options';
 import RowActions from '#/components/table/row-actions.vue';
 import TableToolbarActions from '#/components/table/table-toolbar-actions.vue';
 import { useConfirmAction } from '#/hooks/use-confirm-action';
@@ -35,10 +39,6 @@ import {
   NON_DELETABLE_ROLE_CODES,
   SUPER_ADMIN_ROLE_CODE,
 } from '../_shared/constants';
-import {
-  ROLE_TYPE_SELECT_OPTIONS,
-  ROLE_TYPE_TAG_OPTIONS,
-} from '../_shared/display-options';
 import { roleIdentitySearchSchema } from '../_shared/search-schemas';
 import { ROLE_PERMISSION_CODES } from './permission-codes';
 import RoleDetailDrawer from './role-detail-drawer.vue';

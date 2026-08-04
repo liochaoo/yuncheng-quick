@@ -4,6 +4,7 @@ import com.yuncheng.framework.security.authorization.annotation.RequirePermissio
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.framework.web.response.ApiResponse;
+import com.yuncheng.framework.web.response.AvailabilityResponse;
 import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.system.user.dto.PasswordResetRequest;
 import com.yuncheng.system.user.dto.UserCreateRequest;
@@ -14,7 +15,6 @@ import com.yuncheng.system.user.dto.UserPageQuery;
 import com.yuncheng.system.user.dto.UserIdListRequest;
 import com.yuncheng.system.user.dto.UserStatusRequest;
 import com.yuncheng.system.user.dto.UserUniquenessCheckRequest;
-import com.yuncheng.system.user.dto.UserUniquenessCheckResult;
 import com.yuncheng.system.user.dto.UserUpdateRequest;
 import com.yuncheng.system.user.constant.UserPermissionCodes;
 import com.yuncheng.system.user.service.UserCommandService;
@@ -90,11 +90,11 @@ public class UserController {
     @PostMapping("/uniqueness-check")
     @Operation(summary = "校验用户唯一性")
     @RequirePermission({UserPermissionCodes.ADD, UserPermissionCodes.EDIT})
-    public ApiResponse<UserUniquenessCheckResult> checkUniqueness(
+    public ApiResponse<AvailabilityResponse> checkUniqueness(
             @Valid @RequestBody UserUniquenessCheckRequest request
     ) {
         boolean available = uniquenessService.isAvailable(request.field(), request.value(), request.id());
-        return ApiResponse.success(new UserUniquenessCheckResult(available));
+        return ApiResponse.success(new AvailabilityResponse(available));
     }
 
     @PutMapping("/{id}")

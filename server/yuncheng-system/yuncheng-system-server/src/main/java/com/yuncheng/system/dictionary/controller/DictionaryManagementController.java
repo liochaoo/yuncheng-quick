@@ -5,6 +5,7 @@ import com.yuncheng.framework.security.authorization.annotation.RequirePermissio
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.framework.web.response.ApiResponse;
+import com.yuncheng.framework.web.response.AvailabilityResponse;
 import com.yuncheng.system.dictionary.constant.DictionaryPermissionCodes;
 import com.yuncheng.system.dictionary.dto.DictionaryCreateRequest;
 import com.yuncheng.system.dictionary.dto.DictionaryDetail;
@@ -18,7 +19,6 @@ import com.yuncheng.system.dictionary.dto.DictionaryOptionUniquenessCheckRequest
 import com.yuncheng.system.dictionary.dto.DictionaryOptionUpdateRequest;
 import com.yuncheng.system.dictionary.dto.DictionaryPageQuery;
 import com.yuncheng.system.dictionary.dto.DictionaryUniquenessCheckRequest;
-import com.yuncheng.system.dictionary.dto.DictionaryUniquenessCheckResult;
 import com.yuncheng.system.dictionary.dto.DictionaryUpdateRequest;
 import com.yuncheng.system.dictionary.service.DictionaryCommandService;
 import com.yuncheng.system.dictionary.service.DictionaryQueryService;
@@ -84,10 +84,10 @@ public class DictionaryManagementController {
     @PostMapping("/uniqueness-check")
     @Operation(summary = "校验数据字典唯一性")
     @RequirePermission(DictionaryPermissionCodes.ADD)
-    public ApiResponse<DictionaryUniquenessCheckResult> checkUniqueness(
+    public ApiResponse<AvailabilityResponse> checkUniqueness(
             @Valid @RequestBody DictionaryUniquenessCheckRequest request
     ) {
-        return ApiResponse.success(new DictionaryUniquenessCheckResult(
+        return ApiResponse.success(new AvailabilityResponse(
                 uniquenessService.isDictionaryCodeAvailable(request.value())
         ));
     }
@@ -144,12 +144,12 @@ public class DictionaryManagementController {
     @PostMapping("/{dictionaryId}/options/uniqueness-check")
     @Operation(summary = "校验字典选项唯一性")
     @RequirePermission(DictionaryPermissionCodes.ADD)
-    public ApiResponse<DictionaryUniquenessCheckResult> checkOptionUniqueness(
+    public ApiResponse<AvailabilityResponse> checkOptionUniqueness(
             @PathVariable @Positive Long dictionaryId,
             @Valid @RequestBody DictionaryOptionUniquenessCheckRequest request
     ) {
         queryService.requireDictionary(dictionaryId);
-        return ApiResponse.success(new DictionaryUniquenessCheckResult(
+        return ApiResponse.success(new AvailabilityResponse(
                 uniquenessService.isOptionValueAvailable(dictionaryId, request.value())
         ));
     }

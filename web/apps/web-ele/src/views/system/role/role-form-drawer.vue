@@ -26,12 +26,11 @@ import {
   updateRoleApi,
 } from '#/api/system/role';
 import SortOrderInput from '#/components/form/sort-order-input.vue';
+import { ROLE_TYPE_TAG_OPTIONS } from '#/components/role/role-options';
 import { useBusinessFormDrawer } from '#/hooks/use-business-form-drawer';
 import { useIsSuperAdmin } from '#/hooks/use-super-admin';
 import { BUSINESS_FORM_DRAWER_WIDTH } from '#/types/business-form';
 import { createUniqueValidator } from '#/utils/form-validation';
-
-import { ROLE_TYPE_TAG_OPTIONS } from '../_shared/display-options';
 
 interface RoleFormModel {
   roleCode: string;

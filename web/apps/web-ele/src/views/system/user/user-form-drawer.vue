@@ -18,6 +18,7 @@ import {
 import FormGrid from '#/components/form/form-grid.vue';
 import FormSection from '#/components/form/form-section.vue';
 import SortOrderInput from '#/components/form/sort-order-input.vue';
+import RoleSelect from '#/components/role/role-select.vue';
 import { useBusinessFormDrawer } from '#/hooks/use-business-form-drawer';
 import { BUSINESS_FORM_DRAWER_WIDTH } from '#/types/business-form';
 import { USERNAME_INPUT_GUIDE } from '#/utils/form-validation';
@@ -30,9 +31,7 @@ import {
   fillUserForm,
 } from './user-form-model';
 import UserOrgAssignmentEditor from './user-org-assignment-editor.vue';
-import UserRoleSelect from './user-role-select.vue';
-
-type UserRoleSelectInstance = InstanceType<typeof UserRoleSelect>;
+type RoleSelectInstance = InstanceType<typeof RoleSelect>;
 type UserOrgAssignmentEditorInstance = InstanceType<
   typeof UserOrgAssignmentEditor
 >;
@@ -43,7 +42,7 @@ const emit = defineEmits<{
 
 const formRef = ref<FormInstance>();
 const model = reactive<UserFormModel>(createDefaultUserForm());
-const roleSelectRef = ref<UserRoleSelectInstance>();
+const roleSelectRef = ref<RoleSelectInstance>();
 const orgAssignmentRef = ref<UserOrgAssignmentEditorInstance>();
 
 const {
@@ -190,7 +189,7 @@ function openOrgSelection() {
       </FormSection>
       <FormSection title="角色配置">
         <ElFormItem label="角色" prop="roleIds">
-          <UserRoleSelect ref="roleSelectRef" v-model="model.roleIds" />
+          <RoleSelect ref="roleSelectRef" v-model="model.roleIds" />
         </ElFormItem>
       </FormSection>
     </ElForm>

@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import type { FileApi } from '#/api/core';
 
-import { ElButton, ElMessageBox } from 'element-plus';
+import { ElButton } from 'element-plus';
+
+import { useConfirmAction } from '#/hooks/use-confirm-action';
 
 import {
   downloadFileRecord,
@@ -32,17 +34,15 @@ const emit = defineEmits<{
   remove: [file: FileApi.Record];
 }>();
 
-async function confirmRemove(file: FileApi.Record) {
-  await ElMessageBox.confirm(
-    `确定删除文件“${file.originalName}”吗？`,
-    '删除确认',
-    {
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      type: 'warning',
-    },
-  );
-  emit('remove', file);
+const { confirming, runConfirmAction } = useConfirmAction();
+
+function confirmRemove(file: FileApi.Record) {
+  void runConfirmAction({
+    action: async () => emit('remove', file),
+    confirmButtonText: '删除',
+    message: `确定删除文件“${file.originalName}”吗？`,
+    title: '删除确认',
+  });
 }
 
 async function preview(file: FileApi.Record) {
@@ -95,6 +95,7 @@ async function download(file: FileApi.Record) {
           </ElButton>
           <ElButton
             v-if="removable && !disabled"
+            :disabled="confirming"
             link
             type="danger"
             @click="confirmRemove(file)"

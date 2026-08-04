@@ -20,7 +20,7 @@ import {
   textColumn,
 } from '#/utils/table-columns';
 
-import { ROLE_TYPE_TAG_OPTIONS } from '../_shared/display-options';
+import { ROLE_TYPE_TAG_OPTIONS } from './role-options';
 
 type RoleGridListeners = VxeGridListeners<RoleOption>;
 type CheckboxAllEvent = Parameters<
@@ -229,7 +229,7 @@ defineExpose({ clearOptions, loadSelected });
 
 <template>
   <div
-    class="user-role-select"
+    class="role-select"
     role="button"
     tabindex="0"
     @click="openDialog"
@@ -322,7 +322,7 @@ defineExpose({ clearOptions, loadSelected });
 </template>
 
 <style scoped>
-.user-role-select {
+.role-select {
   width: 100%;
   min-height: 32px;
   max-height: 96px;
@@ -337,11 +337,11 @@ defineExpose({ clearOptions, loadSelected });
   transition: var(--el-transition-box-shadow);
 }
 
-.user-role-select:hover {
+.role-select:hover {
   border-color: var(--el-border-color-hover);
 }
 
-.user-role-select:focus-visible {
+.role-select:focus-visible {
   outline: 0;
   border-color: var(--el-color-primary);
   box-shadow: 0 0 0 1px var(--el-color-primary) inset;

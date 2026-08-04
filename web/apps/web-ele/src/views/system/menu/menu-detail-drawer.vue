@@ -5,13 +5,13 @@ import type { DetailTableItem } from '#/components/detail/detail-table.types';
 import { computed } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
-import { formatDateTime } from '@vben/utils';
 
 import { ElTag } from 'element-plus';
 
 import { getMenuDetailApi } from '#/api/system/menu';
 import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
+import { buildRecordDetailItems } from '#/components/detail/record-detail-items';
 import EnabledStatus from '#/components/display/enabled-status.vue';
 import EnumTag from '#/components/display/enum-tag.vue';
 import { useBusinessDetailDrawer } from '#/hooks/use-business-detail-drawer';
@@ -173,18 +173,7 @@ const advancedItems = computed<DetailTableItem[]>(() => {
   return items;
 });
 
-const recordItems = computed<DetailTableItem[]>(() => [
-  {
-    key: 'createdAt',
-    label: '创建时间',
-    value: formatDateTime(detail.value?.menu.createdAt),
-  },
-  {
-    key: 'updatedAt',
-    label: '更新时间',
-    value: formatDateTime(detail.value?.menu.updatedAt),
-  },
-]);
+const recordItems = computed(() => buildRecordDetailItems(detail.value?.menu));
 </script>
 
 <template>

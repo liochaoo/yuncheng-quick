@@ -7,13 +7,9 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 
 import { VCropper } from '@vben/common-ui';
 
-import {
-  ElButton,
-  ElDialog,
-  ElMessage,
-  ElMessageBox,
-  ElUpload,
-} from 'element-plus';
+import { ElButton, ElDialog, ElMessage, ElUpload } from 'element-plus';
+
+import { useConfirmAction } from '#/hooks/use-confirm-action';
 
 import AuthenticatedImage from './authenticated-image.vue';
 
@@ -38,6 +34,7 @@ const cropperImage = ref('');
 const cropperRef = ref<InstanceType<typeof VCropper> | null>(null);
 const uploading = ref(false);
 const displaySize = computed(() => `${props.size}px`);
+const { confirming: deleting, runConfirmAction } = useConfirmAction();
 
 function releaseCropperImage() {
   if (cropperImage.value) {
@@ -101,13 +98,18 @@ async function confirmCrop() {
 
 async function removeAvatar() {
   if (!file.value) return;
-  await ElMessageBox.confirm('确定删除当前头像吗？', '删除确认', {
+  const currentFile = file.value;
+  await runConfirmAction({
+    action: async () => {
+      await props.deleteHandler(currentFile);
+      if (file.value?.id === currentFile.id) {
+        file.value = null;
+      }
+    },
     confirmButtonText: '删除',
-    cancelButtonText: '取消',
-    type: 'warning',
+    message: '确定删除当前头像吗？',
+    title: '删除确认',
   });
-  await props.deleteHandler(file.value);
-  file.value = null;
 }
 
 onBeforeUnmount(releaseCropperImage);
@@ -142,6 +144,7 @@ onBeforeUnmount(releaseCropperImage);
       <ElButton
         v-if="file"
         class="w-24"
+        :loading="deleting"
         type="danger"
         plain
         @click="removeAvatar"

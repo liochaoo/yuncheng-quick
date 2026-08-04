@@ -1,8 +1,8 @@
 import type {
+  AvailabilityResult,
   RoleOption,
   RoleSummary,
   RoleType,
-  UniquenessCheckResult,
 } from '#/api/system/types';
 import type { PageResult } from '#/api/types';
 
@@ -95,7 +95,7 @@ export async function updateRoleApi(id: string, data: RoleUpdateRequest) {
 }
 
 export async function checkRoleUniquenessApi(data: RoleUniquenessCheckRequest) {
-  return requestClient.post<UniquenessCheckResult>(
+  return requestClient.post<AvailabilityResult>(
     '/system/roles/uniqueness-check',
     data,
   );

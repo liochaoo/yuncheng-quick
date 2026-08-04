@@ -4,6 +4,7 @@ import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.framework.security.authorization.annotation.RequirePermission;
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.response.ApiResponse;
+import com.yuncheng.framework.web.response.AvailabilityResponse;
 import com.yuncheng.system.organization.constant.OrgPermissionCodes;
 import com.yuncheng.system.organization.dto.OrgCreateRequest;
 import com.yuncheng.system.organization.dto.OrgDetail;
@@ -13,7 +14,6 @@ import com.yuncheng.system.organization.dto.OrgMoveImpact;
 import com.yuncheng.system.organization.dto.OrgMoveRequest;
 import com.yuncheng.system.organization.dto.OrgUpdateRequest;
 import com.yuncheng.system.organization.dto.OrgUniquenessCheckRequest;
-import com.yuncheng.system.organization.dto.OrgUniquenessCheckResult;
 import com.yuncheng.system.organization.service.OrgCommandService;
 import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.organization.service.OrgUniquenessService;
@@ -91,12 +91,12 @@ public class OrgManagementController {
     @PostMapping("/uniqueness-check")
     @Operation(summary = "校验组织唯一性")
     @RequirePermission({OrgPermissionCodes.ADD, OrgPermissionCodes.EDIT})
-    public ApiResponse<OrgUniquenessCheckResult> checkUniqueness(
+    public ApiResponse<AvailabilityResponse> checkUniqueness(
             @Valid @RequestBody OrgUniquenessCheckRequest request
     ) {
         boolean available = uniquenessService.isAvailable(
                 request.field(), request.value(), request.parentId(), request.id());
-        return ApiResponse.success(new OrgUniquenessCheckResult(available));
+        return ApiResponse.success(new AvailabilityResponse(available));
     }
 
     @PutMapping("/{id}")

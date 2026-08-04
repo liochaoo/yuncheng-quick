@@ -4,16 +4,14 @@ import type { DetailTableItem } from '#/components/detail/detail-table.types';
 
 import { computed } from 'vue';
 
-import { formatDateTime } from '@vben/utils';
-
 import { getRoleDetailApi } from '#/api/system/role';
 import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
+import { buildRecordDetailItems } from '#/components/detail/record-detail-items';
 import EnumTag from '#/components/display/enum-tag.vue';
+import { ROLE_TYPE_TAG_OPTIONS } from '#/components/role/role-options';
 import { useBusinessDetailDrawer } from '#/hooks/use-business-detail-drawer';
 import { BUSINESS_FORM_DRAWER_WIDTH } from '#/types/business-form';
-
-import { ROLE_TYPE_TAG_OPTIONS } from '../_shared/display-options';
 
 const { detail, Drawer, loading } = useBusinessDetailDrawer<RoleDetail>({
   load: getRoleDetailApi,
@@ -27,18 +25,7 @@ const basicItems = computed<DetailTableItem[]>(() => [
   { key: 'userCount', label: '用户数量', value: detail.value?.userCount },
 ]);
 
-const recordItems = computed<DetailTableItem[]>(() => [
-  {
-    key: 'createdAt',
-    label: '创建时间',
-    value: formatDateTime(detail.value?.createdAt),
-  },
-  {
-    key: 'updatedAt',
-    label: '更新时间',
-    value: formatDateTime(detail.value?.updatedAt),
-  },
-]);
+const recordItems = computed(() => buildRecordDetailItems(detail.value));
 </script>
 
 <template>

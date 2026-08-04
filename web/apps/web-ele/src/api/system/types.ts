@@ -15,6 +15,6 @@ export interface RoleSummary {
   roleType: RoleType;
 }
 
-export interface UniquenessCheckResult {
+export interface AvailabilityResult {
   available: boolean;
 }

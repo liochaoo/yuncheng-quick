@@ -4,11 +4,10 @@ import type { DetailTableItem } from '#/components/detail/detail-table.types';
 
 import { computed } from 'vue';
 
-import { formatDateTime } from '@vben/utils';
-
 import { getFileDetailApi } from '#/api/system/file';
 import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
+import { buildRecordDetailItems } from '#/components/detail/record-detail-items';
 import EnumTag from '#/components/display/enum-tag.vue';
 import { formatFileSize } from '#/components/file/file-display';
 import { useBusinessDetailDrawer } from '#/hooks/use-business-detail-drawer';
@@ -87,20 +86,9 @@ const businessItems = computed<DetailTableItem[]>(() => [
   { key: 'sortOrder', label: '排序号', value: detail.value?.sortOrder },
 ]);
 
-const recordItems = computed<DetailTableItem[]>(() => [
-  {
-    key: 'createdAt',
-    label: '创建时间',
-    value: formatDateTime(detail.value?.createdAt),
-  },
-  { key: 'createdBy', label: '创建人 ID', value: detail.value?.createdBy },
-  {
-    key: 'updatedAt',
-    label: '更新时间',
-    value: formatDateTime(detail.value?.updatedAt ?? undefined),
-  },
-  { key: 'updatedBy', label: '更新人 ID', value: detail.value?.updatedBy },
-]);
+const recordItems = computed(() =>
+  buildRecordDetailItems(detail.value, { showOperators: true }),
+);
 </script>
 
 <template>
