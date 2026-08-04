@@ -23,6 +23,11 @@ export default defineConfig(async () => {
             ws: true,
             xfwd: true,
           },
+          '/v3/api-docs': {
+            changeOrigin: true,
+            target: 'http://localhost:8087',
+            xfwd: true,
+          },
         },
       },
     },

@@ -32,6 +32,7 @@ Yuncheng Quick 是一套基于 Spring Boot 4 和 Vben Admin 5.7 的企业级管�
 - 系统日志：登录日志、操作日志和日志清理
 - 数据字典：字典和字典选项维护
 - 组织管理：组织、部门和小组的异步树形维护
+- 接口文档：OpenAPI 3.1 文档与 Scalar 交互界面
 - 文件能力：本地磁盘、MinIO 和阿里云 OSS 存储适配
 - 基础能力：邮件、验证码、缓存、异步日志和集群定时任务
 
@@ -175,6 +176,7 @@ data/files
 - 生产部署通过 `SPRING_PROFILES_ACTIVE=prod` 启用生产 Profile
 - 生产 Profile 启动前必须配置 `DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`PLATFORM_AUTH_JWT_SECRET` 和 `PLATFORM_INIT_ADMIN_PASSWORD`
 - Redis、邮件和对象存储凭据应根据部署环境单独配置
+- OpenAPI 文档生产环境默认关闭；确需开放时设置 `PLATFORM_OPENAPI_ENABLED=true`，并只向具备接口文档权限的账号授权
 - 不要将真实密码、Token、密钥或生产配置提交到仓库
 
 ## 品牌与二次开发配置

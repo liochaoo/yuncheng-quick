@@ -23,5 +23,6 @@
         <module>yuncheng-framework-file</module>
         <module>yuncheng-framework-job</module>
         <module>yuncheng-framework-log</module>
+        <module>yuncheng-framework-openapi</module>
     </modules>
 </project>

@@ -23,7 +23,12 @@ const router = createRouter({
     if (savedPosition) {
       return savedPosition;
     }
-    return to.hash ? { behavior: 'smooth', el: to.hash } : { left: 0, top: 0 };
+    if (to.hash) {
+      const targetId = decodeURIComponent(to.hash.slice(1));
+      const target = document.querySelector(`#${CSS.escape(targetId)}`);
+      return target ? { behavior: 'smooth', el: target } : false;
+    }
+    return { left: 0, top: 0 };
   },
   // 是否应该禁止尾部斜杠。
   // strict: true,

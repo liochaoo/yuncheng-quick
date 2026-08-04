@@ -96,7 +96,7 @@ yuncheng-quick
 | --- | --- |
 | `yuncheng-parent` | Spring Boot 父工程、Java 版本和依赖版本管理 |
 | `yuncheng-common` | 公共常量、基础模型和通用工具 |
-| `yuncheng-framework` | Web、安全、Redis、MyBatis、文件、邮件、验证码、日志和任务等基础设施 |
+| `yuncheng-framework` | Web、安全、Redis、MyBatis、文件、邮件、验证码、日志、任务和 OpenAPI 等基础设施 |
 | `yuncheng-system-api` | 系统领域对其他模块公开的接口和数据契约 |
 | `yuncheng-system-login` | 登录、刷新、退出、注册、找回密码和个人中心 |
 | `yuncheng-system-server` | 用户、角色、菜单、权限、日志、字典、安全策略、文件和在线会话 |
@@ -354,6 +354,7 @@ SPRING_PROFILES_ACTIVE=prod
 
 - `REDIS_HOST`、`REDIS_PORT`、`REDIS_PASSWORD`
 - `PLATFORM_FILE_DEFAULT_PLATFORM`
+- `PLATFORM_OPENAPI_ENABLED`（开发环境默认开启，生产环境默认关闭）
 - 文件存储和邮件服务相关环境变量
 
 公开仓库中的默认值仅用于本地开发。部署到可联网环境时，应使用独立凭据、HTTPS、访问控制、资源限制、日志保留策略和备份方案。
@@ -381,7 +382,7 @@ SPRING_PROFILES_ACTIVE=prod
 - MySQL 与 Redis 为基础运行依赖；
 - 文件默认使用本地磁盘；
 - 当前未提供微服务拆分、租户运行机制和消息队列；
-- 当前未提供 Swagger 或 OpenAPI 文档；
+- 提供受登录认证及独立权限码保护的 OpenAPI 3.1 文档，生产环境默认关闭；
 - 当前验证方式以编译、类型检查、构建和关键流程人工检查为主。
 
 这些边界描述当前版本的实现范围，不限制使用者在自身项目中扩展相应能力。

@@ -15,6 +15,11 @@
     <dependencies>
         <dependency>
             <groupId>com.yuncheng</groupId>
+            <artifactId>yuncheng-framework-openapi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yuncheng</groupId>
             <artifactId>yuncheng-system-login</artifactId>
             <version>${project.version}</version>
         </dependency>

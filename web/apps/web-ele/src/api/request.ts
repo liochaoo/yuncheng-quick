@@ -196,6 +196,15 @@ export const requestClient = createRequestClient(apiURL, {
 });
 
 /**
+ * 返回原始响应数据的认证客户端。
+ *
+ * 用于 OpenAPI 等遵循外部标准、不会包装为平台 ApiResponse 的接口。
+ */
+export const rawRequestClient = createRequestClient('', {
+  responseReturn: 'body',
+});
+
+/**
  * 认证接口客户端。
  *
  * 与普通请求使用相同的响应解析和错误处理，但不添加 Access Token，
