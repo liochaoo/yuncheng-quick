@@ -69,7 +69,7 @@ yuncheng-quick
 │   ├── yuncheng-framework/    # Web、安全、缓存、文件等基础设施
 │   ├── yuncheng-system/       # 用户、角色、菜单、权限等系统模块
 │   ├── yuncheng-init/         # 系统初始化
-│   ├── yuncheng-demo/         # 开发演示能力，应用默认不加载
+│   ├── yuncheng-demo/         # 开发演示与实例数据模块，应用默认不加载
 │   └── yuncheng-boot/         # 应用启动模块
 ├── web/                       # Vben Admin 前端工作区
 ├── database/                  # 按版本发布的数据库脚本

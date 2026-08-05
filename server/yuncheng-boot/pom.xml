@@ -33,7 +33,7 @@
             <artifactId>yuncheng-init</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- 开发演示数据模块默认不启用；本地需要演示数据时可取消下面的注释。
+        <!-- 开发演示与实例数据模块默认不启用；需要时可取消下面的注释。
         <dependency>
             <groupId>com.yuncheng</groupId>
             <artifactId>yuncheng-demo</artifactId>
