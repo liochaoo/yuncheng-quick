@@ -11,10 +11,12 @@ import com.yuncheng.system.api.user.SystemUserCommandApi;
 import com.yuncheng.system.api.user.SystemUserCreateCommand;
 import com.yuncheng.system.permission.cache.UserAccessCacheService;
 import com.yuncheng.system.role.service.UserRoleService;
+import com.yuncheng.system.security.service.SecurityPolicyService;
 import com.yuncheng.system.session.service.LoginSessionService;
 import com.yuncheng.system.user.dto.UserCreateRequest;
 import com.yuncheng.system.user.dto.UserUpdateRequest;
 import com.yuncheng.system.user.entity.SystemUser;
+import com.yuncheng.system.user.enums.PasswordSetupMode;
 import com.yuncheng.system.user.enums.UserUniqueField;
 import com.yuncheng.system.user.mapper.SystemUserMapper;
 import java.time.Instant;
@@ -45,6 +47,7 @@ public class UserCommandService implements SystemUserCommandApi {
     private final UserAccessCacheService cacheService;
     private final LoginSessionService sessionService;
     private final UserOrgService userOrgService;
+    private final SecurityPolicyService securityPolicyService;
 
     public UserCommandService(
             SystemUserMapper userMapper,
@@ -58,7 +61,8 @@ public class UserCommandService implements SystemUserCommandApi {
             UserInputService inputService,
             UserAccessCacheService cacheService,
             LoginSessionService sessionService,
-            UserOrgService userOrgService
+            UserOrgService userOrgService,
+            SecurityPolicyService securityPolicyService
     ) {
         this.userMapper = userMapper;
         this.userQueryService = userQueryService;
@@ -72,6 +76,7 @@ public class UserCommandService implements SystemUserCommandApi {
         this.cacheService = cacheService;
         this.sessionService = sessionService;
         this.userOrgService = userOrgService;
+        this.securityPolicyService = securityPolicyService;
     }
 
     @Transactional
@@ -84,7 +89,7 @@ public class UserCommandService implements SystemUserCommandApi {
         uniquenessService.requireAvailable(UserUniqueField.EMAIL, email, null);
         SystemUser user = new SystemUser();
         user.setUsername(username);
-        user.setPasswordHash(passwordPolicyService.encodeNewPassword(request.password()));
+        applyInitialPassword(user, request.passwordMode(), request.password());
         user.setPasswordChangedAt(Instant.now());
         user.setLoginFailedCount(0);
         user.setRealName(inputService.normalizeRealName(request.realName()));
@@ -125,6 +130,7 @@ public class UserCommandService implements SystemUserCommandApi {
         user.setUsername(username);
         user.setPasswordHash(passwordPolicyService.encodeNewPassword(command.password()));
         user.setPasswordChangedAt(Instant.now());
+        user.setPasswordChangeRequired(command.passwordChangeRequired());
         user.setLoginFailedCount(0);
         user.setRealName(inputService.normalizeRealName(command.realName()));
         user.setPhone(phone);
@@ -168,6 +174,7 @@ public class UserCommandService implements SystemUserCommandApi {
             user.setUsername(username);
             user.setPasswordHash(passwordHash);
             user.setPasswordChangedAt(Instant.now());
+            user.setPasswordChangeRequired(command.passwordChangeRequired());
             user.setLoginFailedCount(0);
             user.setRealName(inputService.normalizeRealName(item.realName()));
             user.setPhone(phone);
@@ -276,6 +283,24 @@ public class UserCommandService implements SystemUserCommandApi {
 
     private int valueOrZero(Integer value) {
         return value == null ? 0 : value;
+    }
+
+    private void applyInitialPassword(
+            SystemUser user,
+            PasswordSetupMode passwordMode,
+            String password
+    ) {
+        if (passwordMode == PasswordSetupMode.DEFAULT) {
+            user.setPasswordHash(securityPolicyService.defaultPasswordHash());
+            user.setPasswordChangeRequired(true);
+            return;
+        }
+        if (passwordMode == PasswordSetupMode.MANUAL) {
+            user.setPasswordHash(passwordPolicyService.encodeNewPassword(password));
+            user.setPasswordChangeRequired(false);
+            return;
+        }
+        throw PlatformException.badRequest("密码设置方式不正确");
     }
 
     private void requireBatchAvailable(List<SystemUser> users) {

@@ -11,6 +11,7 @@ public final class SecurityConstants {
             WebConstants.API_PREFIX + "/auth/login",
             WebConstants.API_PREFIX + "/auth/refresh",
             WebConstants.API_PREFIX + "/auth/logout",
+            WebConstants.API_PREFIX + "/auth/password/change-required",
             WebConstants.API_PREFIX + "/auth/register/email-code",
             WebConstants.API_PREFIX + "/auth/register",
             WebConstants.API_PREFIX + "/auth/password/email-code",

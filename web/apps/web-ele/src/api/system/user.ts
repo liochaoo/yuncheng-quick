@@ -7,6 +7,7 @@ import { requestClient } from '#/api/request';
 export type UserUniqueField = 'EMAIL' | 'PHONE' | 'USERNAME';
 export type UserOrgRelationType = 'ALL' | 'OTHER' | 'PRIMARY';
 export type UserOrgScope = 'DIRECT' | 'INCLUDE_DESCENDANTS';
+export type PasswordSetupMode = 'DEFAULT' | 'MANUAL';
 
 export interface UserPrimaryOrgSummary {
   fullPath: string;
@@ -87,7 +88,8 @@ export interface UserPageParams {
 
 export interface UserCreateRequest {
   email?: string;
-  password: string;
+  password?: string;
+  passwordMode: PasswordSetupMode;
   phone?: string;
   orgIds: string[];
   primaryOrgId: string;
@@ -146,8 +148,11 @@ export async function changeUserStatusApi(id: string, enabled: boolean) {
   return requestClient.put<null>(`/system/users/${id}/enabled`, { enabled });
 }
 
-export async function resetUserPasswordApi(id: string, password: string) {
-  return requestClient.put<null>(`/system/users/${id}/password`, { password });
+export async function resetUserPasswordApi(
+  id: string,
+  data: { password?: string; passwordMode: PasswordSetupMode },
+) {
+  return requestClient.put<null>(`/system/users/${id}/password`, data);
 }
 
 export async function unlockUserLoginApi(id: string) {

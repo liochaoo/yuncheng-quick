@@ -1,15 +1,19 @@
 package com.yuncheng.system.login.auth.controller;
 
-import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.client.ClientRequestInfo;
 import com.yuncheng.framework.web.client.ClientRequestInfoResolver;
+import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.system.login.auth.dto.AuthenticatedTokens;
+import com.yuncheng.system.login.auth.dto.LoginAuthenticationResult;
 import com.yuncheng.system.login.auth.dto.LoginRequest;
+import com.yuncheng.system.login.auth.dto.LoginResponse;
+import com.yuncheng.system.login.auth.dto.RequiredPasswordChangeRequest;
 import com.yuncheng.system.login.auth.dto.TokenResponse;
 import com.yuncheng.system.login.auth.enums.ClientType;
 import com.yuncheng.system.login.auth.service.AuthenticationService;
 import com.yuncheng.system.login.auth.service.LoginLogRecorder;
+import com.yuncheng.system.login.auth.service.RequiredPasswordChangeService;
 import com.yuncheng.system.login.auth.support.RefreshCookieManager;
 import com.yuncheng.system.login.security.service.LoginSecurityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,24 +40,27 @@ public class AuthController {
     private final RefreshCookieManager cookieManager;
     private final ClientRequestInfoResolver requestInfoResolver;
     private final LoginLogRecorder loginLogRecorder;
+    private final RequiredPasswordChangeService requiredPasswordChangeService;
 
     public AuthController(
             AuthenticationService authenticationService,
             LoginSecurityService securityService,
             RefreshCookieManager cookieManager,
             ClientRequestInfoResolver requestInfoResolver,
-            LoginLogRecorder loginLogRecorder
+            LoginLogRecorder loginLogRecorder,
+            RequiredPasswordChangeService requiredPasswordChangeService
     ) {
         this.authenticationService = authenticationService;
         this.securityService = securityService;
         this.cookieManager = cookieManager;
         this.requestInfoResolver = requestInfoResolver;
         this.loginLogRecorder = loginLogRecorder;
+        this.requiredPasswordChangeService = requiredPasswordChangeService;
     }
 
     @PostMapping("/login")
     @Operation(summary = "登录")
-    public ApiResponse<TokenResponse> login(
+    public ApiResponse<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest servletRequest,
             HttpServletResponse response
@@ -70,9 +77,25 @@ public class AuthController {
             );
             throw exception;
         }
-        AuthenticatedTokens tokens = authenticationService.login(request, CLIENT_TYPES, requestInfo);
+        LoginAuthenticationResult result = authenticationService.login(request, CLIENT_TYPES, requestInfo);
+        if (result.requiresPasswordChange()) {
+            cookieManager.clear(response);
+            return ApiResponse.success(new LoginResponse(null, true, result.passwordChangeToken()));
+        }
+        AuthenticatedTokens tokens = result.tokens();
         cookieManager.write(response, tokens.refreshToken(), tokens.sessionExpiresAt());
-        return ApiResponse.success(new TokenResponse(tokens.accessToken()));
+        return ApiResponse.success(new LoginResponse(tokens.accessToken(), false, null));
+    }
+
+    @PostMapping("/password/change-required")
+    @Operation(summary = "完成登录前强制密码修改")
+    public ApiResponse<Void> changeRequiredPassword(
+            @Valid @RequestBody RequiredPasswordChangeRequest request,
+            HttpServletResponse response
+    ) {
+        cookieManager.clear(response);
+        requiredPasswordChangeService.change(request.passwordChangeToken(), request.newPassword());
+        return ApiResponse.success(null);
     }
 
     @PostMapping("/refresh")

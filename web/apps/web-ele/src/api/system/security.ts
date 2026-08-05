@@ -14,6 +14,9 @@ export interface SecurityPolicy {
     maxFailedAttempts: number;
     windowMinutes: number;
   };
+  defaultPassword: {
+    configured: boolean;
+  };
   password: {
     historyCount: number;
     maxLength: number;
@@ -25,12 +28,23 @@ export interface SecurityPolicy {
   };
 }
 
+export type SecurityPolicyUpdateRequest = Omit<
+  SecurityPolicy,
+  'defaultPassword'
+> & {
+  defaultPassword: {
+    password?: string;
+  };
+};
+
 /** 读取当前实际生效的安全策略。 */
 export async function getSecurityPolicyManagementApi() {
   return requestClient.get<SecurityPolicy>('/system/security');
 }
 
 /** 完整保存安全策略。 */
-export async function updateSecurityPolicyApi(data: SecurityPolicy) {
+export async function updateSecurityPolicyApi(
+  data: SecurityPolicyUpdateRequest,
+) {
   return requestClient.put<SecurityPolicy>('/system/security', data);
 }

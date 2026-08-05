@@ -114,3 +114,11 @@ VALUES
         'system:openapi:query', 10, 'lucide:file-json-2',
         0, 0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0
     );
+
+ALTER TABLE system_user
+    ADD COLUMN password_change_required TINYINT NOT NULL DEFAULT 0
+        COMMENT '下次登录是否必须修改密码' AFTER password_changed_at;
+
+ALTER TABLE system_security_policy
+    ADD COLUMN default_password_hash VARCHAR(255) NULL
+        COMMENT '系统公共默认密码摘要' AFTER password_history_count;

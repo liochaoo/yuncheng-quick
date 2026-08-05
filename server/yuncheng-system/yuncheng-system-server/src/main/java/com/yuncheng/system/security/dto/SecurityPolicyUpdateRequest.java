@@ -10,7 +10,8 @@ public record SecurityPolicyUpdateRequest(
         @NotNull(message = "功能开关不能为空") @Valid Feature feature,
         @NotNull(message = "验证码设置不能为空") @Valid Captcha captcha,
         @NotNull(message = "登录失败控制不能为空") @Valid LoginFailure loginFailure,
-        @NotNull(message = "密码规则不能为空") @Valid Password password
+        @NotNull(message = "密码规则不能为空") @Valid Password password,
+        @NotNull(message = "默认密码设置不能为空") @Valid DefaultPassword defaultPassword
 ) {
 
     public SecurityPolicyData toData() {
@@ -34,7 +35,8 @@ public record SecurityPolicyUpdateRequest(
                         password.requireDigit(),
                         password.requireSpecial(),
                         password.historyCount()
-                )
+                ),
+                new SecurityPolicyData.DefaultPassword(false)
         );
     }
 
@@ -84,5 +86,8 @@ public record SecurityPolicyUpdateRequest(
             @Max(value = 10, message = "历史密码次数不能超过 10")
             Integer historyCount
     ) {
+    }
+
+    public record DefaultPassword(String password) {
     }
 }

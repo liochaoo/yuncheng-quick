@@ -126,7 +126,7 @@ public class UserController {
             @PathVariable @Positive Long id,
             @Valid @RequestBody PasswordResetRequest request
     ) {
-        passwordService.reset(id, request.password());
+        passwordService.reset(id, request.passwordMode(), request.password());
         return ApiResponse.success(null);
     }
 

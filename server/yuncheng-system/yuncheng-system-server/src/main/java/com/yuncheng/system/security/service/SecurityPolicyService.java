@@ -7,8 +7,8 @@ import com.yuncheng.system.security.dto.SecurityPolicyData;
 import com.yuncheng.system.security.dto.SecurityPolicyUpdateRequest;
 import com.yuncheng.system.security.entity.SystemSecurityPolicy;
 import com.yuncheng.system.security.mapper.SystemSecurityPolicyMapper;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,9 +17,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class SecurityPolicyService {
 
     private final SystemSecurityPolicyMapper policyMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final PasswordRuleValidator passwordRuleValidator;
 
-    public SecurityPolicyService(SystemSecurityPolicyMapper policyMapper) {
+    public SecurityPolicyService(
+            SystemSecurityPolicyMapper policyMapper,
+            PasswordEncoder passwordEncoder,
+            PasswordRuleValidator passwordRuleValidator
+    ) {
         this.policyMapper = policyMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.passwordRuleValidator = passwordRuleValidator;
     }
 
     public SecurityPolicyData current() {
@@ -32,16 +40,33 @@ public class SecurityPolicyService {
         SecurityPolicyData policy = request.toData();
         validate(policy);
         SystemSecurityPolicy entity = findStoredPolicy();
+        String requestedDefaultPassword = normalizePassword(request.defaultPassword().password());
+        SecurityPolicyData.Password previousPasswordPolicy = entity == null
+                ? SecurityPolicyDefaults.POLICY.password()
+                : toData(entity).password();
+        if (requestedDefaultPassword == null
+                && !Objects.equals(previousPasswordPolicy, policy.password())) {
+            throw PlatformException.badRequest("修改密码规则时必须同时重新设置系统默认密码");
+        }
+        if (requestedDefaultPassword != null) {
+            passwordRuleValidator.requireNewPassword(requestedDefaultPassword, policy.password());
+        }
         if (entity == null) {
             entity = new SystemSecurityPolicy();
             entity.setPolicyKey(SecurityPolicyDefaults.POLICY_KEY);
             apply(entity, policy);
-            policyMapper.insert(entity);
         } else {
             apply(entity, policy);
+        }
+        if (requestedDefaultPassword != null) {
+            entity.setDefaultPasswordHash(passwordEncoder.encode(requestedDefaultPassword));
+        }
+        if (entity.getId() == null) {
+            policyMapper.insert(entity);
+        } else {
             policyMapper.updateById(entity);
         }
-        return policy;
+        return toData(entity);
     }
 
     public void requireRegistrationEnabled() {
@@ -67,28 +92,16 @@ public class SecurityPolicyService {
     }
 
     public String passwordRuleText(SecurityPolicyData.Password password) {
-        List<String> requirements = new ArrayList<>();
-        if (password.requireLowercase()) {
-            requirements.add("小写字母");
+        return passwordRuleValidator.ruleText(password);
+    }
+
+    public String defaultPasswordHash() {
+        SystemSecurityPolicy entity = findStoredPolicy();
+        if (entity != null && entity.getDefaultPasswordHash() != null
+                && !entity.getDefaultPasswordHash().isBlank()) {
+            return entity.getDefaultPasswordHash();
         }
-        if (password.requireUppercase()) {
-            requirements.add("大写字母");
-        }
-        if (password.requireDigit()) {
-            requirements.add("数字");
-        }
-        if (password.requireSpecial()) {
-            requirements.add("特殊字符");
-        }
-        StringBuilder text = new StringBuilder("密码应为 ")
-                .append(password.minLength())
-                .append("～")
-                .append(password.maxLength())
-                .append(" 个字符");
-        if (!requirements.isEmpty()) {
-            text.append("，须包含").append(String.join("、", requirements));
-        }
-        return text.toString();
+        return passwordEncoder.encode(SecurityPolicyDefaults.INITIAL_DEFAULT_PASSWORD);
     }
 
     private SystemSecurityPolicy findStoredPolicy() {
@@ -123,6 +136,10 @@ public class SecurityPolicyService {
                         entity.isPasswordRequireDigit(),
                         entity.isPasswordRequireSpecial(),
                         entity.getPasswordHistoryCount()
+                ),
+                new SecurityPolicyData.DefaultPassword(
+                        entity.getDefaultPasswordHash() != null
+                                && !entity.getDefaultPasswordHash().isBlank()
                 )
         );
     }
@@ -142,5 +159,9 @@ public class SecurityPolicyService {
         entity.setPasswordRequireDigit(policy.password().requireDigit());
         entity.setPasswordRequireSpecial(policy.password().requireSpecial());
         entity.setPasswordHistoryCount(policy.password().historyCount());
+    }
+
+    private String normalizePassword(String password) {
+        return password == null || password.isBlank() ? null : password;
     }
 }

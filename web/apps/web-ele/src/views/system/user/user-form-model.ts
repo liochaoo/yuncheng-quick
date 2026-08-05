@@ -10,6 +10,7 @@ export interface UserFormModel {
   enabled: boolean;
   orgIds: string[];
   password: string;
+  passwordMode: 'DEFAULT' | 'MANUAL';
   phone: string;
   primaryOrgId: string;
   realName: string;
@@ -25,6 +26,7 @@ export function createDefaultUserForm(): UserFormModel {
     enabled: true,
     orgIds: [],
     password: '',
+    passwordMode: 'DEFAULT',
     phone: '',
     primaryOrgId: '',
     realName: '',
@@ -56,7 +58,8 @@ export function buildUserCreateRequest(
 ): UserCreateRequest {
   return {
     email: normalizedOptional(model.email),
-    password: model.password,
+    password: model.passwordMode === 'MANUAL' ? model.password : undefined,
+    passwordMode: model.passwordMode,
     phone: normalizedOptional(model.phone),
     orgIds: [...model.orgIds],
     primaryOrgId: model.primaryOrgId,

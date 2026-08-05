@@ -6,12 +6,14 @@ import com.yuncheng.system.security.dto.SecurityPolicyData;
 public final class SecurityPolicyDefaults {
 
     public static final String POLICY_KEY = "default";
+    public static final String INITIAL_DEFAULT_PASSWORD = "user@123456";
 
     public static final SecurityPolicyData POLICY = new SecurityPolicyData(
             new SecurityPolicyData.Feature(true, true, true),
             new SecurityPolicyData.Captcha(false),
             new SecurityPolicyData.LoginFailure(5, 15, 15),
-            new SecurityPolicyData.Password(8, 64, true, false, true, true, 5)
+            new SecurityPolicyData.Password(8, 64, true, false, true, true, 5),
+            new SecurityPolicyData.DefaultPassword(false)
     );
 
     private SecurityPolicyDefaults() {

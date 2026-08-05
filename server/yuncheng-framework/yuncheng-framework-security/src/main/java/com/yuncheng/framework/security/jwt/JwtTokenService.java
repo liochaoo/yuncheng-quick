@@ -20,18 +20,23 @@ public class JwtTokenService {
 
     public static final String SESSION_ID_CLAIM = "sid";
     public static final String CLIENT_TYPE_CLAIM = "client_type";
+    public static final String PASSWORD_CHANGED_AT_CLAIM = "password_changed_at";
+    public static final String PASSWORD_CHANGE_REQUIRED_CLAIM = "password_change_required";
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder refreshJwtDecoder;
+    private final JwtDecoder passwordChangeJwtDecoder;
     private final JwtProperties properties;
 
     public JwtTokenService(
             JwtEncoder jwtEncoder,
             @Qualifier("refreshJwtDecoder") JwtDecoder refreshJwtDecoder,
+            @Qualifier("passwordChangeJwtDecoder") JwtDecoder passwordChangeJwtDecoder,
             JwtProperties properties
     ) {
         this.jwtEncoder = jwtEncoder;
         this.refreshJwtDecoder = refreshJwtDecoder;
+        this.passwordChangeJwtDecoder = passwordChangeJwtDecoder;
         this.properties = properties;
     }
 
@@ -51,6 +56,34 @@ public class JwtTokenService {
 
     public Jwt decodeRefreshToken(String token) {
         return refreshJwtDecoder.decode(token);
+    }
+
+    public String issuePasswordChangeToken(
+            Long userId,
+            String clientType,
+            Instant passwordChangedAt
+    ) {
+        Instant now = Instant.now();
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256)
+                .type(JwtTokenTypes.PASSWORD_CHANGE)
+                .build();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(properties.getIssuer())
+                .audience(List.of(properties.getAudience()))
+                .subject(userId.toString())
+                .id(UUID.randomUUID().toString())
+                .issuedAt(now)
+                .notBefore(now)
+                .expiresAt(now.plus(properties.getPasswordChangeTokenTtl()))
+                .claim(CLIENT_TYPE_CLAIM, clientType)
+                .claim(PASSWORD_CHANGED_AT_CLAIM, passwordChangedAt.toEpochMilli())
+                .claim(PASSWORD_CHANGE_REQUIRED_CLAIM, true)
+                .build();
+        return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+    }
+
+    public Jwt decodePasswordChangeToken(String token) {
+        return passwordChangeJwtDecoder.decode(token);
     }
 
     private IssuedTokens issue(

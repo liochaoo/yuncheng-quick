@@ -118,6 +118,8 @@ platform:
       access-token-ttl: 30m
       # Refresh Token 和登录 Session 的最长有效期。
       refresh-token-ttl: 7d
+      # 强制修改初始密码凭据的有效期。
+      password-change-token-ttl: 10m
       # Refresh Token 轮换时旧 Token 的重叠有效时间。
       refresh-token-overlap: 30s
     refresh-cookie:

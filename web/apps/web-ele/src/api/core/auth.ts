@@ -13,6 +13,18 @@ export namespace AuthApi {
     accessToken: string;
   }
 
+  /** Web 登录结果；需要修改初始密码时不会返回普通访问令牌。 */
+  export interface LoginResult {
+    accessToken?: null | string;
+    passwordChangeRequired: boolean;
+    passwordChangeToken?: null | string;
+  }
+
+  export interface RequiredPasswordChangeParams {
+    newPassword: string;
+    passwordChangeToken: string;
+  }
+
   /** 注册邮箱验证码参数 */
   export interface RegisterEmailCodeParams {
     captchaVerification: string;
@@ -92,10 +104,17 @@ export async function getExperienceConfigApi() {
  * 登录
  */
 export async function loginApi(data: AuthApi.LoginParams) {
-  return authRequestClient.post<AuthApi.TokenResult>('/auth/login', {
+  return authRequestClient.post<AuthApi.LoginResult>('/auth/login', {
     ...data,
     clientType: 'WEB',
   });
+}
+
+/** 完成登录前的强制密码修改。 */
+export async function changeRequiredPasswordApi(
+  data: AuthApi.RequiredPasswordChangeParams,
+) {
+  return authRequestClient.post<null>('/auth/password/change-required', data);
 }
 
 /**

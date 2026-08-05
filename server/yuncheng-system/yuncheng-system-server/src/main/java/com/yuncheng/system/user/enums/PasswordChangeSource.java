@@ -4,6 +4,7 @@ package com.yuncheng.system.user.enums;
 public enum PasswordChangeSource {
     CREATE,
     SELF_CHANGE,
+    REQUIRED_CHANGE,
     ADMIN_RESET,
     RECOVERY_RESET
 }

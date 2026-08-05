@@ -5,7 +5,8 @@ public record SecurityPolicyData(
         Feature feature,
         Captcha captcha,
         LoginFailure loginFailure,
-        Password password
+        Password password,
+        DefaultPassword defaultPassword
 ) {
 
     public record Feature(
@@ -36,5 +37,8 @@ public record SecurityPolicyData(
             boolean requireSpecial,
             int historyCount
     ) {
+    }
+
+    public record DefaultPassword(boolean configured) {
     }
 }

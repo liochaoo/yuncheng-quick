@@ -90,8 +90,29 @@ public class UserAccountService {
     }
 
     @Transactional
+    public void resetToDefaultPassword(Long userId, String passwordHash) {
+        SystemUser user = requireUserForUpdate(userId);
+        replacePasswordHash(user, passwordHash, PasswordChangeSource.ADMIN_RESET, true);
+    }
+
+    @Transactional
     public void recoverPassword(Long userId, String newPassword) {
         resetPassword(userId, newPassword, PasswordChangeSource.RECOVERY_RESET);
+    }
+
+    @Transactional
+    public void completeRequiredPasswordChange(
+            Long userId,
+            Instant expectedPasswordChangedAt,
+            String newPassword
+    ) {
+        SystemUser user = requireUserForUpdate(userId);
+        if (!Boolean.TRUE.equals(user.getEnabled())
+                || !Boolean.TRUE.equals(user.getPasswordChangeRequired())
+                || !expectedPasswordChangedAt.equals(user.getPasswordChangedAt())) {
+            throw PlatformException.unauthorized("修改密码凭据无效或已过期");
+        }
+        replacePassword(user, newPassword, PasswordChangeSource.REQUIRED_CHANGE);
     }
 
     private void resetPassword(
@@ -112,8 +133,18 @@ public class UserAccountService {
         int historyCount = passwordPolicyService.currentHistoryCount();
         passwordHistoryService.requireNotRecentlyUsed(user.getId(), newPassword, historyCount);
         String passwordHash = passwordPolicyService.encodeNewPassword(newPassword);
+        replacePasswordHash(user, passwordHash, source, false);
+    }
+
+    private void replacePasswordHash(
+            SystemUser user,
+            String passwordHash,
+            PasswordChangeSource source,
+            boolean passwordChangeRequired
+    ) {
         user.setPasswordHash(passwordHash);
         user.setPasswordChangedAt(Instant.now());
+        user.setPasswordChangeRequired(passwordChangeRequired);
         userMapper.updateById(user);
         userMapper.clearLoginFailureState(user.getId());
         passwordHistoryService.record(user.getId(), passwordHash, source);

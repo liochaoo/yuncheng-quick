@@ -19,6 +19,7 @@ public class SystemSecurityPolicy extends BaseEntity {
     private boolean passwordRequireDigit;
     private boolean passwordRequireSpecial;
     private Integer passwordHistoryCount;
+    private String defaultPasswordHash;
     private Integer loginMaxFailedAttempts;
     private Integer loginFailureWindowMinutes;
     private Integer loginLockMinutes;
@@ -117,6 +118,14 @@ public class SystemSecurityPolicy extends BaseEntity {
 
     public void setPasswordHistoryCount(Integer passwordHistoryCount) {
         this.passwordHistoryCount = passwordHistoryCount;
+    }
+
+    public String getDefaultPasswordHash() {
+        return defaultPasswordHash;
+    }
+
+    public void setDefaultPasswordHash(String defaultPasswordHash) {
+        this.defaultPasswordHash = defaultPasswordHash;
     }
 
     public Integer getLoginMaxFailedAttempts() {

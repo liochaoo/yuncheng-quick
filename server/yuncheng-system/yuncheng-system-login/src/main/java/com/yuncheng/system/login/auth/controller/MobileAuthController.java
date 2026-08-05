@@ -1,9 +1,11 @@
 package com.yuncheng.system.login.auth.controller;
 
-import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.client.ClientRequestInfoResolver;
+import com.yuncheng.framework.web.constant.WebConstants;
+import com.yuncheng.framework.web.exception.PlatformException;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.system.login.auth.dto.AuthenticatedTokens;
+import com.yuncheng.system.login.auth.dto.LoginAuthenticationResult;
 import com.yuncheng.system.login.auth.dto.LoginRequest;
 import com.yuncheng.system.login.auth.dto.RefreshTokenRequest;
 import com.yuncheng.system.login.auth.dto.TokenPairResponse;
@@ -49,12 +51,15 @@ public class MobileAuthController {
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest servletRequest
     ) {
-        AuthenticatedTokens tokens = authenticationService.login(
+        LoginAuthenticationResult result = authenticationService.login(
                 request,
                 CLIENT_TYPES,
                 requestInfoResolver.resolve(servletRequest)
         );
-        return ApiResponse.success(toTokenPair(tokens));
+        if (result.requiresPasswordChange()) {
+            throw PlatformException.forbidden("请先通过 Web 登录页面修改初始密码");
+        }
+        return ApiResponse.success(toTokenPair(result.tokens()));
     }
 
     @PostMapping("/refresh")

@@ -11,7 +11,13 @@ import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 import { ElNotification } from 'element-plus';
 import { defineStore } from 'pinia';
 
-import { getAccessCodesApi, getUserInfoApi, loginApi, logoutApi } from '#/api';
+import {
+  changeRequiredPasswordApi,
+  getAccessCodesApi,
+  getUserInfoApi,
+  loginApi,
+  logoutApi,
+} from '#/api';
 import { $t } from '#/locales';
 
 type AuthenticatedUserInfo = Omit<CurrentUserInfo, 'avatar'> & {
@@ -36,13 +42,24 @@ export const useAuthStore = defineStore('auth', () => {
     onSuccess?: () => Promise<void> | void,
   ) {
     // 异步处理用户登录操作并获取 accessToken
-    let userInfo: AuthenticatedUserInfo;
+    let userInfo: AuthenticatedUserInfo | undefined;
     let sessionCreated = false;
     try {
       loginLoading.value = true;
       const loginResult = await loginApi(params);
-      sessionCreated = true;
       const { accessToken } = loginResult;
+
+      if (loginResult.passwordChangeRequired) {
+        if (!loginResult.passwordChangeToken) {
+          throw new Error('登录结果缺少修改密码凭据');
+        }
+        return {
+          passwordChangeRequired: true as const,
+          passwordChangeToken: loginResult.passwordChangeToken,
+        };
+      }
+
+      sessionCreated = true;
 
       // 如果成功获取到 accessToken
       if (accessToken) {
@@ -92,8 +109,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     return {
+      passwordChangeRequired: false as const,
       userInfo,
     };
+  }
+
+  async function changeRequiredPassword(
+    params: AuthApi.RequiredPasswordChangeParams,
+  ) {
+    loginLoading.value = true;
+    try {
+      await changeRequiredPasswordApi(params);
+    } finally {
+      loginLoading.value = false;
+    }
   }
 
   async function logout(redirect: boolean = true) {
@@ -142,6 +171,7 @@ export const useAuthStore = defineStore('auth', () => {
     $reset,
     accessCodesLoaded,
     authLogin,
+    changeRequiredPassword,
     fetchAccessCodes,
     fetchUserInfo,
     loginLoading,

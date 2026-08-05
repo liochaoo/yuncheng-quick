@@ -27,15 +27,16 @@ export function useUserFormRules(
   void securityPolicyStore.load().catch(() => undefined);
 
   return computed<FormRules<UserFormModel>>(() => ({
-    confirmPassword: isCreate.value
-      ? [
-          { message: '请再次输入初始密码', required: true, trigger: 'blur' },
-          {
-            trigger: 'blur',
-            validator: createConfirmPasswordValidator(() => model.password),
-          },
-        ]
-      : [],
+    confirmPassword:
+      isCreate.value && model.passwordMode === 'MANUAL'
+        ? [
+            { message: '请再次输入初始密码', required: true, trigger: 'blur' },
+            {
+              trigger: 'blur',
+              validator: createConfirmPasswordValidator(() => model.password),
+            },
+          ]
+        : [],
     email: [
       { max: 254, message: '邮箱不能超过 254 个字符', trigger: 'blur' },
       { message: '邮箱格式不正确', trigger: 'blur', type: 'email' },
@@ -55,18 +56,19 @@ export function useUserFormRules(
         }),
       },
     ],
-    password: isCreate.value
-      ? [
-          { message: '请输入初始密码', required: true, trigger: 'blur' },
-          {
-            trigger: 'blur',
-            validator: createPasswordValidator(
-              () => securityPolicyStore.policy?.password,
-              '初始密码',
-            ),
-          },
-        ]
-      : [],
+    password:
+      isCreate.value && model.passwordMode === 'MANUAL'
+        ? [
+            { message: '请输入初始密码', required: true, trigger: 'blur' },
+            {
+              trigger: 'blur',
+              validator: createPasswordValidator(
+                () => securityPolicyStore.policy?.password,
+                '初始密码',
+              ),
+            },
+          ]
+        : [],
     orgIds: [
       {
         message: '请至少选择一个归属组织',

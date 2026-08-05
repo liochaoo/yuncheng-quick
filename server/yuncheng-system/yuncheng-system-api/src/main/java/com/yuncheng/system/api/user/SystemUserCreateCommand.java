@@ -10,6 +10,7 @@ public record SystemUserCreateCommand(
         String email,
         int sortOrder,
         boolean enabled,
-        Long primaryOrgId
+        Long primaryOrgId,
+        boolean passwordChangeRequired
 ) {
 }

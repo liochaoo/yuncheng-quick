@@ -10,6 +10,7 @@ import {
   ElButton,
   ElForm,
   ElFormItem,
+  ElInput,
   ElInputNumber,
   ElMessage,
   ElSwitch,
@@ -32,11 +33,15 @@ const securityPolicyStore = useSecurityPolicyStore();
 const loading = ref(false);
 const model = ref<SecurityPolicy>();
 const saving = ref(false);
+const defaultPassword = ref('');
+const defaultPasswordConfirm = ref('');
 
 async function load() {
   loading.value = true;
   try {
     model.value = await getSecurityPolicyManagementApi();
+    defaultPassword.value = '';
+    defaultPasswordConfirm.value = '';
   } finally {
     loading.value = false;
   }
@@ -48,9 +53,20 @@ async function save() {
     ElMessage.warning('密码最大长度不能小于最小长度');
     return;
   }
+  if (defaultPassword.value !== defaultPasswordConfirm.value) {
+    ElMessage.warning('两次输入的系统公共默认密码不一致');
+    return;
+  }
   saving.value = true;
   try {
-    model.value = await updateSecurityPolicyApi(model.value);
+    model.value = await updateSecurityPolicyApi({
+      ...model.value,
+      defaultPassword: {
+        password: defaultPassword.value || undefined,
+      },
+    });
+    defaultPassword.value = '';
+    defaultPasswordConfirm.value = '';
     securityPolicyStore.$reset();
     ElMessage.success('安全策略保存成功');
   } finally {
@@ -218,6 +234,54 @@ onMounted(() => void load());
               </ElFormItem>
             </div>
           </FormSection>
+
+          <FormSection title="默认密码">
+            <div
+              class="default-password-grid security-option-grid rounded-lg border px-5 py-2"
+            >
+              <ElFormItem class="mb-0 py-3" label="系统公共默认密码">
+                <div class="w-[360px] max-w-full">
+                  <ElInput
+                    v-model="defaultPassword"
+                    autocomplete="new-password"
+                    :disabled="!canEdit"
+                    placeholder="留空表示保持当前默认密码"
+                    show-password
+                    type="password"
+                  />
+                  <p
+                    class="mt-1 text-xs leading-5"
+                    :class="
+                      model.defaultPassword.configured
+                        ? 'text-muted-foreground'
+                        : 'text-destructive'
+                    "
+                  >
+                    {{
+                      model.defaultPassword.configured
+                        ? '当前默认密码已配置。'
+                        : '当前正在使用公开的内置初始默认密码，请尽快设置。'
+                    }}该密码用于新增、导入或重置用户；使用后用户必须自行修改。调整密码规则时需要同时重新设置。
+                  </p>
+                </div>
+              </ElFormItem>
+              <ElFormItem class="mb-0 py-3" label="确认默认密码">
+                <div class="w-[360px] max-w-full">
+                  <ElInput
+                    v-model="defaultPasswordConfirm"
+                    autocomplete="new-password"
+                    :disabled="!canEdit"
+                    placeholder="请再次输入新的默认密码"
+                    show-password
+                    type="password"
+                  />
+                  <p class="mt-1 text-xs leading-5 text-muted-foreground">
+                    未设置新默认密码时，此处也请保持为空。
+                  </p>
+                </div>
+              </ElFormItem>
+            </div>
+          </FormSection>
         </ElForm>
       </div>
     </section>
@@ -231,6 +295,10 @@ onMounted(() => void load());
   column-gap: 32px;
 }
 
+.default-password-grid {
+  align-items: start;
+}
+
 :deep(.security-form .el-form-item__label) {
   width: auto !important;
   margin-right: 20px;
@@ -238,6 +306,16 @@ onMounted(() => void load());
 
 :deep(.security-form .el-form-item__content) {
   flex: none;
+}
+
+:deep(.default-password-grid .el-form-item) {
+  align-items: flex-start;
+}
+
+:deep(.default-password-grid .el-form-item__label) {
+  width: 140px !important;
+  margin-right: 12px;
+  flex: 0 0 140px;
 }
 
 @media (width <= 640px) {

@@ -11,6 +11,7 @@ public class SystemUser extends BaseEntity {
     private String username;
     private String passwordHash;
     private Instant passwordChangedAt;
+    private Boolean passwordChangeRequired;
     private Integer loginFailedCount;
     private Instant loginFailureWindowStartedAt;
     private Instant loginLockedUntil;
@@ -43,6 +44,14 @@ public class SystemUser extends BaseEntity {
 
     public void setPasswordChangedAt(Instant passwordChangedAt) {
         this.passwordChangedAt = passwordChangedAt;
+    }
+
+    public Boolean getPasswordChangeRequired() {
+        return passwordChangeRequired;
+    }
+
+    public void setPasswordChangeRequired(Boolean passwordChangeRequired) {
+        this.passwordChangeRequired = passwordChangeRequired;
     }
 
     public Integer getLoginFailedCount() {

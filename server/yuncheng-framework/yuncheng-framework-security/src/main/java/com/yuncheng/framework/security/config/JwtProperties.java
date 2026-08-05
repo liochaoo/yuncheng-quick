@@ -13,6 +13,7 @@ public class JwtProperties {
     private Duration accessTokenTtl = Duration.ofMinutes(30);
     private Duration refreshTokenTtl = Duration.ofDays(7);
     private Duration refreshTokenOverlap = Duration.ofSeconds(30);
+    private Duration passwordChangeTokenTtl = Duration.ofMinutes(10);
 
     public String getSecret() {
         return secret;
@@ -60,5 +61,13 @@ public class JwtProperties {
 
     public void setRefreshTokenOverlap(Duration refreshTokenOverlap) {
         this.refreshTokenOverlap = refreshTokenOverlap;
+    }
+
+    public Duration getPasswordChangeTokenTtl() {
+        return passwordChangeTokenTtl;
+    }
+
+    public void setPasswordChangeTokenTtl(Duration passwordChangeTokenTtl) {
+        this.passwordChangeTokenTtl = passwordChangeTokenTtl;
     }
 }

@@ -8,7 +8,14 @@ import type { BusinessFormDrawerOpenData } from '#/types/business-form';
 
 import { nextTick, reactive, ref } from 'vue';
 
-import { ElButton, ElForm, ElFormItem, ElInput } from 'element-plus';
+import {
+  ElButton,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElRadioButton,
+  ElRadioGroup,
+} from 'element-plus';
 
 import {
   createUserApi,
@@ -136,7 +143,23 @@ function openOrgSelection() {
               show-word-limit
             />
           </ElFormItem>
-          <ElFormItem v-if="isCreate" label="初始密码" prop="password">
+          <ElFormItem v-if="isCreate" label="密码方式" prop="passwordMode">
+            <ElRadioGroup v-model="model.passwordMode">
+              <ElRadioButton value="DEFAULT">使用默认密码</ElRadioButton>
+              <ElRadioButton value="MANUAL">手动设置密码</ElRadioButton>
+            </ElRadioGroup>
+            <p
+              v-if="model.passwordMode === 'DEFAULT'"
+              class="mt-1 w-full text-xs leading-5 text-[var(--el-text-color-secondary)]"
+            >
+              管理员无需知道默认密码，用户登录后必须先修改密码
+            </p>
+          </ElFormItem>
+          <ElFormItem
+            v-if="isCreate && model.passwordMode === 'MANUAL'"
+            label="初始密码"
+            prop="password"
+          >
             <ElInput
               v-model="model.password"
               autocomplete="new-password"
@@ -145,7 +168,11 @@ function openOrgSelection() {
               type="password"
             />
           </ElFormItem>
-          <ElFormItem v-if="isCreate" label="确认密码" prop="confirmPassword">
+          <ElFormItem
+            v-if="isCreate && model.passwordMode === 'MANUAL'"
+            label="确认密码"
+            prop="confirmPassword"
+          >
             <ElInput
               v-model="model.confirmPassword"
               autocomplete="new-password"

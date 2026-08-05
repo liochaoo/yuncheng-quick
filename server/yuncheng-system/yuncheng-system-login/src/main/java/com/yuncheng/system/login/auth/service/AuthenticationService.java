@@ -5,6 +5,7 @@ import com.yuncheng.framework.security.jwt.JwtTokenService;
 import com.yuncheng.framework.web.client.ClientRequestInfo;
 import com.yuncheng.framework.web.exception.PlatformException;
 import com.yuncheng.system.login.auth.dto.AuthenticatedTokens;
+import com.yuncheng.system.login.auth.dto.LoginAuthenticationResult;
 import com.yuncheng.system.login.auth.dto.LoginRequest;
 import com.yuncheng.system.login.auth.enums.ClientType;
 import com.yuncheng.system.permission.cache.UserAccessCacheService;
@@ -13,8 +14,8 @@ import com.yuncheng.system.session.service.LoginSessionService;
 import com.yuncheng.system.security.service.SecurityPolicyService;
 import com.yuncheng.system.user.entity.SystemUser;
 import com.yuncheng.system.user.service.PasswordPolicyService;
-import com.yuncheng.system.user.service.UserLoginSecurityService;
 import com.yuncheng.system.user.service.UserLoginQueryService;
+import com.yuncheng.system.user.service.UserLoginSecurityService;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
@@ -64,7 +65,7 @@ public class AuthenticationService {
         this.loginLogRecorder = loginLogRecorder;
     }
 
-    public AuthenticatedTokens login(
+    public LoginAuthenticationResult login(
             LoginRequest request,
             Set<ClientType> allowedClientTypes,
             ClientRequestInfo requestInfo
@@ -101,6 +102,15 @@ public class AuthenticationService {
                     user.getId(),
                     verifiedPasswordHash
             );
+            if (Boolean.TRUE.equals(user.getPasswordChangeRequired())) {
+                return LoginAuthenticationResult.passwordChangeRequired(
+                        jwtTokenService.issuePasswordChangeToken(
+                                user.getId(),
+                                clientType.name(),
+                                user.getPasswordChangedAt()
+                        )
+                );
+            }
             clearUserAccessCache(user.getId());
             String sessionId = UUID.randomUUID().toString();
             IssuedTokens issuedTokens = jwtTokenService.issueForLogin(
@@ -129,7 +139,7 @@ public class AuthenticationService {
                     sessionId,
                     requestInfo
             );
-            return toAuthenticatedTokens(issuedTokens);
+            return LoginAuthenticationResult.authenticated(toAuthenticatedTokens(issuedTokens));
         } catch (RuntimeException exception) {
             loginLogRecorder.loginFailure(
                     request.username(),

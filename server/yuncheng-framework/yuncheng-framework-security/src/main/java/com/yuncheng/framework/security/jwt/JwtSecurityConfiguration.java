@@ -54,6 +54,11 @@ public class JwtSecurityConfiguration {
         return createDecoder(secretKey, properties, JwtTokenTypes.REFRESH);
     }
 
+    @Bean("passwordChangeJwtDecoder")
+    JwtDecoder passwordChangeJwtDecoder(SecretKey secretKey, JwtProperties properties) {
+        return createDecoder(secretKey, properties, JwtTokenTypes.PASSWORD_CHANGE);
+    }
+
     private NimbusJwtDecoder createDecoder(
             SecretKey secretKey,
             JwtProperties properties,
@@ -84,6 +89,7 @@ public class JwtSecurityConfiguration {
         requirePositive(properties.getAccessTokenTtl(), "Access Token 有效期必须大于 0");
         requirePositive(properties.getRefreshTokenTtl(), "Refresh Token 有效期必须大于 0");
         requirePositive(properties.getRefreshTokenOverlap(), "Refresh Token 重叠时间必须大于 0");
+        requirePositive(properties.getPasswordChangeTokenTtl(), "强制修改密码 Token 有效期必须大于 0");
         if (properties.getAccessTokenTtl().compareTo(properties.getRefreshTokenTtl()) >= 0) {
             fail("Access Token 有效期必须小于 Refresh Token 有效期");
         }

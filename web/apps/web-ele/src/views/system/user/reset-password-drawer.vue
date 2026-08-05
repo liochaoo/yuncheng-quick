@@ -5,7 +5,14 @@ import { computed, nextTick, onBeforeUnmount, reactive, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 
-import { ElForm, ElFormItem, ElInput, ElMessage } from 'element-plus';
+import {
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElMessage,
+  ElRadioButton,
+  ElRadioGroup,
+} from 'element-plus';
 
 import { getUserDetailApi, resetUserPasswordApi } from '#/api/system/user';
 import { useLatestRequest } from '#/hooks/use-latest-request';
@@ -23,6 +30,7 @@ interface DrawerOpenData {
 interface PasswordFormModel {
   confirmPassword: string;
   password: string;
+  passwordMode: 'DEFAULT' | 'MANUAL';
 }
 
 const emit = defineEmits<{
@@ -37,29 +45,36 @@ const userName = ref('');
 const model = reactive<PasswordFormModel>({
   confirmPassword: '',
   password: '',
+  passwordMode: 'DEFAULT',
 });
 const detailRequest = useLatestRequest();
 const initializing = detailRequest.loading;
 
-const rules: FormRules<PasswordFormModel> = {
-  confirmPassword: [
-    { message: '请再次输入新密码', required: true, trigger: 'blur' },
-    {
-      trigger: 'blur',
-      validator: createConfirmPasswordValidator(() => model.password),
-    },
-  ],
-  password: [
-    { message: '请输入新密码', required: true, trigger: 'blur' },
-    {
-      trigger: 'blur',
-      validator: createPasswordValidator(
-        () => securityPolicyStore.policy?.password,
-        '新密码',
-      ),
-    },
-  ],
-};
+const rules = computed<FormRules<PasswordFormModel>>(() => ({
+  confirmPassword:
+    model.passwordMode === 'MANUAL'
+      ? [
+          { message: '请再次输入新密码', required: true, trigger: 'blur' },
+          {
+            trigger: 'blur',
+            validator: createConfirmPasswordValidator(() => model.password),
+          },
+        ]
+      : [],
+  password:
+    model.passwordMode === 'MANUAL'
+      ? [
+          { message: '请输入新密码', required: true, trigger: 'blur' },
+          {
+            trigger: 'blur',
+            validator: createPasswordValidator(
+              () => securityPolicyStore.policy?.password,
+              '新密码',
+            ),
+          },
+        ]
+      : [],
+}));
 
 const title = computed(() =>
   userName.value ? `重置密码：${userName.value}` : '重置密码',
@@ -73,7 +88,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
     drawerApi.lock();
     try {
-      await resetUserPasswordApi(user.value.id, model.password);
+      await resetUserPasswordApi(user.value.id, {
+        password: model.passwordMode === 'MANUAL' ? model.password : undefined,
+        passwordMode: model.passwordMode,
+      });
       ElMessage.success('密码重置成功');
       emit('success');
       drawerApi.close();
@@ -93,6 +111,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       userName.value = '';
       model.password = '';
       model.confirmPassword = '';
+      model.passwordMode = 'DEFAULT';
       const detail = await detailRequest.execute(() =>
         getUserDetailApi(currentUser.id),
       );
@@ -123,7 +142,23 @@ onBeforeUnmount(detailRequest.invalidate);
       :rules="rules"
       :validate-on-rule-change="false"
     >
-      <ElFormItem label="新密码" prop="password">
+      <ElFormItem label="密码方式" prop="passwordMode">
+        <ElRadioGroup v-model="model.passwordMode">
+          <ElRadioButton value="DEFAULT">使用默认密码</ElRadioButton>
+          <ElRadioButton value="MANUAL">手动设置密码</ElRadioButton>
+        </ElRadioGroup>
+        <p
+          v-if="model.passwordMode === 'DEFAULT'"
+          class="mt-1 w-full text-xs leading-5 text-[var(--el-text-color-secondary)]"
+        >
+          重置后用户必须先修改默认密码才能进入系统
+        </p>
+      </ElFormItem>
+      <ElFormItem
+        v-if="model.passwordMode === 'MANUAL'"
+        label="新密码"
+        prop="password"
+      >
         <ElInput
           v-model="model.password"
           autocomplete="new-password"
@@ -132,7 +167,11 @@ onBeforeUnmount(detailRequest.invalidate);
           type="password"
         />
       </ElFormItem>
-      <ElFormItem label="确认密码" prop="confirmPassword">
+      <ElFormItem
+        v-if="model.passwordMode === 'MANUAL'"
+        label="确认密码"
+        prop="confirmPassword"
+      >
         <ElInput
           v-model="model.confirmPassword"
           autocomplete="new-password"
