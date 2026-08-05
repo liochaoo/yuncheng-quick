@@ -2,7 +2,7 @@
 
 Yuncheng Quick 是一套基于 Spring Boot 4 和 Vben Admin 5.7 的企业级管理系统快速开发框架。
 
-> 当前版本：`v0.1.0-alpha.1`
+> 最新发布版本：`v0.1.0-alpha.1`
 >
 > 项目仍处于早期预览阶段，适合学习、体验和参与测试。用于生产环境前，请自行完成安全、性能、兼容性和业务适配评估。
 
@@ -69,7 +69,7 @@ yuncheng-quick
 │   ├── yuncheng-framework/    # Web、安全、缓存、文件等基础设施
 │   ├── yuncheng-system/       # 用户、角色、菜单、权限等系统模块
 │   ├── yuncheng-init/         # 系统初始化
-│   ├── yuncheng-demo/         # 开发演示与实例数据模块，应用默认不加载
+│   ├── yuncheng-demo/         # 演示扩展模块，当前保留空工程骨架
 │   └── yuncheng-boot/         # 应用启动模块
 ├── web/                       # Vben Admin 前端工作区
 ├── database/                  # 按版本发布的数据库脚本
@@ -179,6 +179,7 @@ data/files
 - 生产 Profile 启动前必须配置 `DB_URL`、`DB_USERNAME`、`DB_PASSWORD`、`PLATFORM_AUTH_JWT_SECRET` 和 `PLATFORM_INIT_ADMIN_PASSWORD`
 - Redis、邮件和对象存储凭据应根据部署环境单独配置
 - OpenAPI 文档生产环境默认关闭；需要时通过 `PLATFORM_OPENAPI_ENABLED=true` 开启，并仅向具备接口文档权限的账号授权
+- 首次部署后应在安全管理中重新设置系统公共默认密码
 - 不要将真实密码、Token、密钥或生产配置提交到仓库
 
 前端面向仍在维护的现代浏览器，最低支持 Chrome 111、Edge 111、Firefox 114、Safari 16.4 和 iOS Safari 16.4。项目不承诺兼容 Internet Explorer 或仅支持 ES2015 的历史浏览器。

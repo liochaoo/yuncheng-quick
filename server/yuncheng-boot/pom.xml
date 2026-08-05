@@ -33,7 +33,7 @@
             <artifactId>yuncheng-init</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- 开发演示与实例数据模块默认不启用；需要时可取消下面的注释。
+        <!-- 演示扩展模块当前保留空工程骨架，默认不启用。
         <dependency>
             <groupId>com.yuncheng</groupId>
             <artifactId>yuncheng-demo</artifactId>
