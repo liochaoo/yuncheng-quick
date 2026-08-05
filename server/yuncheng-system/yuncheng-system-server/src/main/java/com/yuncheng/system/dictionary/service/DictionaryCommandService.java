@@ -2,6 +2,7 @@ package com.yuncheng.system.dictionary.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yuncheng.framework.web.exception.PlatformException;
+import com.yuncheng.system.dictionary.cache.DictionaryOptionCacheService;
 import com.yuncheng.system.dictionary.dto.DictionaryCreateRequest;
 import com.yuncheng.system.dictionary.dto.DictionaryOptionCreateRequest;
 import com.yuncheng.system.dictionary.dto.DictionaryOptionUpdateRequest;
@@ -29,17 +30,20 @@ public class DictionaryCommandService {
     private final SystemDictionaryOptionMapper optionMapper;
     private final DictionaryQueryService queryService;
     private final DictionaryUniquenessService uniquenessService;
+    private final DictionaryOptionCacheService optionCacheService;
 
     public DictionaryCommandService(
             SystemDictionaryMapper dictionaryMapper,
             SystemDictionaryOptionMapper optionMapper,
             DictionaryQueryService queryService,
-            DictionaryUniquenessService uniquenessService
+            DictionaryUniquenessService uniquenessService,
+            DictionaryOptionCacheService optionCacheService
     ) {
         this.dictionaryMapper = dictionaryMapper;
         this.optionMapper = optionMapper;
         this.queryService = queryService;
         this.uniquenessService = uniquenessService;
+        this.optionCacheService = optionCacheService;
     }
 
     @Transactional
@@ -91,11 +95,12 @@ public class DictionaryCommandService {
             throw PlatformException.conflict("字典下仍有选项，不能删除");
         }
         dictionaryMapper.deleteById(dictionary.getId());
+        optionCacheService.deleteAfterCommit(dictionary.getDictionaryCode());
     }
 
     @Transactional
     public Long createOption(Long dictionaryId, DictionaryOptionCreateRequest request) {
-        queryService.requireDictionary(dictionaryId);
+        SystemDictionary dictionary = queryService.requireDictionary(dictionaryId);
         String optionValue = normalizeOptionValue(request.optionValue());
         uniquenessService.requireOptionValueAvailable(dictionaryId, optionValue);
         SystemDictionaryOption option = new SystemDictionaryOption();
@@ -114,6 +119,7 @@ public class DictionaryCommandService {
         option.setSortOrder(request.sortOrder() == null ? 0 : request.sortOrder());
         option.setEnabled(true);
         optionMapper.insert(option);
+        optionCacheService.deleteAfterCommit(dictionary.getDictionaryCode());
         return option.getId();
     }
 
@@ -123,6 +129,7 @@ public class DictionaryCommandService {
             Long optionId,
             DictionaryOptionUpdateRequest request
     ) {
+        SystemDictionary dictionary = queryService.requireDictionary(dictionaryId);
         SystemDictionaryOption option = queryService.requireOption(dictionaryId, optionId);
         option.setOptionLabel(normalizeRequiredText(
                 request.optionLabel(),
@@ -136,19 +143,24 @@ public class DictionaryCommandService {
         ));
         option.setSortOrder(request.sortOrder() == null ? 0 : request.sortOrder());
         optionMapper.updateById(option);
+        optionCacheService.deleteAfterCommit(dictionary.getDictionaryCode());
     }
 
     @Transactional
     public void changeOptionStatus(Long dictionaryId, Long optionId, boolean enabled) {
+        SystemDictionary dictionary = queryService.requireDictionary(dictionaryId);
         SystemDictionaryOption option = queryService.requireOption(dictionaryId, optionId);
         option.setEnabled(enabled);
         optionMapper.updateById(option);
+        optionCacheService.deleteAfterCommit(dictionary.getDictionaryCode());
     }
 
     @Transactional
     public void deleteOption(Long dictionaryId, Long optionId) {
+        SystemDictionary dictionary = queryService.requireDictionary(dictionaryId);
         SystemDictionaryOption option = queryService.requireOption(dictionaryId, optionId);
         optionMapper.deleteById(option.getId());
+        optionCacheService.deleteAfterCommit(dictionary.getDictionaryCode());
     }
 
     private String normalizeDictionaryCode(String value) {

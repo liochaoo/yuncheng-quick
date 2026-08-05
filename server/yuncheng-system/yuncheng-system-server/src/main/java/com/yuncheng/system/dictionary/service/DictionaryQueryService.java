@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yuncheng.framework.web.exception.PlatformException;
 import com.yuncheng.framework.web.page.PageResult;
+import com.yuncheng.system.dictionary.cache.DictionaryOptionCacheService;
 import com.yuncheng.system.dictionary.dto.DictionaryDetail;
 import com.yuncheng.system.dictionary.dto.DictionaryListItem;
 import com.yuncheng.system.dictionary.dto.DictionaryOptionDetail;
@@ -27,13 +28,16 @@ public class DictionaryQueryService {
 
     private final SystemDictionaryMapper dictionaryMapper;
     private final SystemDictionaryOptionMapper optionMapper;
+    private final DictionaryOptionCacheService optionCacheService;
 
     public DictionaryQueryService(
             SystemDictionaryMapper dictionaryMapper,
-            SystemDictionaryOptionMapper optionMapper
+            SystemDictionaryOptionMapper optionMapper,
+            DictionaryOptionCacheService optionCacheService
     ) {
         this.dictionaryMapper = dictionaryMapper;
         this.optionMapper = optionMapper;
+        this.optionCacheService = optionCacheService;
     }
 
     public PageResult<DictionaryListItem> page(DictionaryPageQuery query) {
@@ -123,20 +127,11 @@ public class DictionaryQueryService {
     }
 
     public List<DictionaryOptionItem> listForConsumption(String dictionaryCode) {
-        SystemDictionary dictionary = requireDictionaryByCode(dictionaryCode);
-        return optionMapper.selectList(new LambdaQueryWrapper<SystemDictionaryOption>()
-                        .eq(SystemDictionaryOption::getDictionaryId, dictionary.getId())
-                        .orderByAsc(
-                                SystemDictionaryOption::getSortOrder,
-                                SystemDictionaryOption::getId
-                        ))
-                .stream()
-                .map(option -> new DictionaryOptionItem(
-                        option.getOptionValue(),
-                        option.getOptionLabel(),
-                        Boolean.TRUE.equals(option.getEnabled())
-                ))
-                .toList();
+        String normalizedCode = normalizedCode(dictionaryCode);
+        return optionCacheService.getOrLoad(
+                normalizedCode,
+                () -> loadOptionsForConsumption(requireDictionaryByCode(normalizedCode).getId())
+        );
     }
 
     public SystemDictionary requireDictionary(Long dictionaryId) {
@@ -167,6 +162,22 @@ public class DictionaryQueryService {
             throw PlatformException.notFound("数据字典不存在");
         }
         return dictionary;
+    }
+
+    private List<DictionaryOptionItem> loadOptionsForConsumption(Long dictionaryId) {
+        return optionMapper.selectList(new LambdaQueryWrapper<SystemDictionaryOption>()
+                        .eq(SystemDictionaryOption::getDictionaryId, dictionaryId)
+                        .orderByAsc(
+                                SystemDictionaryOption::getSortOrder,
+                                SystemDictionaryOption::getId
+                        ))
+                .stream()
+                .map(option -> new DictionaryOptionItem(
+                        option.getOptionValue(),
+                        option.getOptionLabel(),
+                        Boolean.TRUE.equals(option.getEnabled())
+                ))
+                .toList();
     }
 
     private DictionaryListItem toListItem(SystemDictionary dictionary) {
