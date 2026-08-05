@@ -29,6 +29,8 @@ export interface LoginLogPageParams {
   clientType?: string;
   eventType?: string;
   loginName?: string;
+  occurredAtEnd?: string;
+  occurredAtStart?: string;
   page: number;
   pageSize: number;
   success?: boolean;
@@ -57,6 +59,9 @@ export interface OperationLogItem {
 
 export interface OperationLogPageParams {
   action?: string;
+  minDurationMillis?: number;
+  occurredAtEnd?: string;
+  occurredAtStart?: string;
   page: number;
   pageSize: number;
   requestPath?: string;

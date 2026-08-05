@@ -73,19 +73,14 @@ const [UploadDrawer, uploadDrawerApi] = useVbenDrawer({
 });
 
 const formOptions: VbenFormProps = {
-  collapsed: false,
+  collapsed: true,
+  collapsedRows: 1,
   schema: [
     {
       component: 'Input',
       componentProps: { clearable: true },
       fieldName: 'originalName',
       label: '文件名称',
-    },
-    {
-      component: 'Input',
-      componentProps: { clearable: true },
-      fieldName: 'storagePlatform',
-      label: '存储平台',
     },
     {
       component: 'Select',
@@ -105,8 +100,14 @@ const formOptions: VbenFormProps = {
       fieldName: 'accessType',
       label: '访问类型',
     },
+    {
+      component: 'Input',
+      componentProps: { clearable: true },
+      fieldName: 'storagePlatform',
+      label: '存储平台',
+    },
   ],
-  showCollapseButton: false,
+  showCollapseButton: true,
   submitOnEnter: true,
   wrapperClass: 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4',
 };

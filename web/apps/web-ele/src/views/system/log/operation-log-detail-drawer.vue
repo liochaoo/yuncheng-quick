@@ -9,6 +9,7 @@ import { formatDateTime } from '@vben/utils';
 import { getOperationLogDetailApi } from '#/api/system/log';
 import DetailSection from '#/components/detail/detail-section.vue';
 import DetailTable from '#/components/detail/detail-table.vue';
+import CopyableText from '#/components/display/copyable-text.vue';
 import EnumTag from '#/components/display/enum-tag.vue';
 import { useBusinessDetailDrawer } from '#/hooks/use-business-detail-drawer';
 import { BUSINESS_FORM_DRAWER_WIDTH } from '#/types/business-form';
@@ -71,8 +72,16 @@ const traceItems = computed<DetailTableItem[]>(() => [
     value:
       detail.value && `${detail.value.className}.${detail.value.methodName}`,
   },
-  { key: 'userId', label: '用户 ID', value: detail.value?.userId },
-  { key: 'traceId', label: '链路 ID', value: detail.value?.traceId },
+  {
+    key: 'userId',
+    label: '用户 ID',
+    value: detail.value?.userId,
+  },
+  {
+    key: 'traceId',
+    label: '链路 ID',
+    value: detail.value?.traceId,
+  },
   {
     key: 'userAgent',
     label: 'User-Agent',
@@ -111,7 +120,14 @@ const traceItems = computed<DetailTableItem[]>(() => [
       </DetailSection>
 
       <DetailSection title="链路信息">
-        <DetailTable :items="traceItems" />
+        <DetailTable :items="traceItems">
+          <template #userId>
+            <span class="whitespace-nowrap">{{ detail.userId || '-' }}</span>
+          </template>
+          <template #traceId>
+            <CopyableText :value="detail.traceId" />
+          </template>
+        </DetailTable>
       </DetailSection>
     </div>
   </Drawer>

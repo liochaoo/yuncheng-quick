@@ -162,8 +162,8 @@ platform:
       attachment:
         # 单个通用附件允许的最大文件大小。
         max-size: 20MB
-        # 通用附件允许上传的文件扩展名。
-        allowed-extensions: [pdf, txt, csv, xls, xlsx, doc, docx, ppt, pptx, zip, rar, 7z]
+        # 通用附件允许上传文档、压缩包和图片。
+        allowed-extensions: [pdf, txt, csv, xls, xlsx, doc, docx, ppt, pptx, zip, rar, 7z, jpg, jpeg, png, gif, webp, bmp, ico]
       image:
         # 单张业务图片允许的最大文件大小。
         max-size: 10MB

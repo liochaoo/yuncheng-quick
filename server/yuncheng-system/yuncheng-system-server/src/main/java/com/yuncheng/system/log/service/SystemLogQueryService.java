@@ -12,6 +12,7 @@ import com.yuncheng.system.log.entity.SystemLoginLog;
 import com.yuncheng.system.log.entity.SystemOperationLog;
 import com.yuncheng.system.log.mapper.SystemLoginLogMapper;
 import com.yuncheng.system.log.mapper.SystemOperationLogMapper;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -65,25 +66,41 @@ public class SystemLogQueryService {
     }
 
     private LambdaQueryWrapper<SystemLoginLog> loginWrapper(LoginLogPageQuery query) {
+        validateOccurredAtRange(query.getOccurredAtStart(), query.getOccurredAtEnd());
         return new LambdaQueryWrapper<SystemLoginLog>()
                 .like(hasText(query.getLoginName()), SystemLoginLog::getLoginName, trim(query.getLoginName()))
                 .eq(hasText(query.getEventType()), SystemLoginLog::getEventType, trim(query.getEventType()))
                 .eq(query.getSuccess() != null, SystemLoginLog::getSuccess, query.getSuccess())
                 .eq(hasText(query.getClientType()), SystemLoginLog::getClientType, trim(query.getClientType()))
                 .eq(hasText(query.getTraceId()), SystemLoginLog::getTraceId, trim(query.getTraceId()))
+                .ge(query.getOccurredAtStart() != null, SystemLoginLog::getOccurredAt, query.getOccurredAtStart())
+                .le(query.getOccurredAtEnd() != null, SystemLoginLog::getOccurredAt, query.getOccurredAtEnd())
                 .orderByDesc(SystemLoginLog::getOccurredAt)
                 .orderByDesc(SystemLoginLog::getId);
     }
 
     private LambdaQueryWrapper<SystemOperationLog> operationWrapper(OperationLogPageQuery query) {
+        validateOccurredAtRange(query.getOccurredAtStart(), query.getOccurredAtEnd());
         return new LambdaQueryWrapper<SystemOperationLog>()
                 .like(hasText(query.getAction()), SystemOperationLog::getAction, trim(query.getAction()))
                 .like(hasText(query.getUsername()), SystemOperationLog::getUsername, trim(query.getUsername()))
                 .like(hasText(query.getRequestPath()), SystemOperationLog::getRequestPath, trim(query.getRequestPath()))
                 .eq(query.getSuccess() != null, SystemOperationLog::getSuccess, query.getSuccess())
                 .eq(hasText(query.getTraceId()), SystemOperationLog::getTraceId, trim(query.getTraceId()))
+                .ge(query.getMinDurationMillis() != null,
+                        SystemOperationLog::getDurationMillis, query.getMinDurationMillis())
+                .ge(query.getOccurredAtStart() != null,
+                        SystemOperationLog::getOccurredAt, query.getOccurredAtStart())
+                .le(query.getOccurredAtEnd() != null,
+                        SystemOperationLog::getOccurredAt, query.getOccurredAtEnd())
                 .orderByDesc(SystemOperationLog::getOccurredAt)
                 .orderByDesc(SystemOperationLog::getId);
+    }
+
+    private void validateOccurredAtRange(Instant start, Instant end) {
+        if (start != null && end != null && start.isAfter(end)) {
+            throw PlatformException.badRequest("发生时间的开始时间不能晚于结束时间");
+        }
     }
 
     private LoginLogItem toLoginItem(SystemLoginLog entity) {

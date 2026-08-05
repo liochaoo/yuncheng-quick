@@ -17,6 +17,7 @@ import { ElButton } from 'element-plus';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { pageOperationLogsApi } from '#/api/system/log';
+import CopyableText from '#/components/display/copyable-text.vue';
 import EnumTag from '#/components/display/enum-tag.vue';
 import RowActions from '#/components/table/row-actions.vue';
 import TableToolbarActions from '#/components/table/table-toolbar-actions.vue';
@@ -32,6 +33,7 @@ import {
   LOG_RESULT_SELECT_OPTIONS,
   LOG_RESULT_TAG_OPTIONS,
 } from './log-options';
+import { formatOccurredAtBoundary } from './log-query-utils';
 import OperationLogDetailDrawer from './operation-log-detail-drawer.vue';
 import { LOG_PERMISSION_CODES } from './permission-codes';
 
@@ -49,7 +51,15 @@ const [DetailDrawer, detailDrawerApi] = useVbenDrawer({
 });
 
 const formOptions: VbenFormProps = {
-  collapsed: false,
+  collapsed: true,
+  collapsedRows: 1,
+  fieldMappingTime: [
+    [
+      'occurredAtRange',
+      ['occurredAtStart', 'occurredAtEnd'],
+      formatOccurredAtBoundary,
+    ],
+  ],
   schema: [
     {
       component: 'Input',
@@ -64,6 +74,19 @@ const formOptions: VbenFormProps = {
       label: '操作人',
     },
     {
+      component: 'DatePicker',
+      componentProps: {
+        clearable: true,
+        endPlaceholder: '结束时间',
+        format: 'YYYY-MM-DD HH:mm:ss',
+        rangeSeparator: '至',
+        startPlaceholder: '开始时间',
+        type: 'datetimerange',
+      },
+      fieldName: 'occurredAtRange',
+      label: '发生时间',
+    },
+    {
       component: 'Select',
       componentProps: {
         clearable: true,
@@ -75,13 +98,33 @@ const formOptions: VbenFormProps = {
     {
       component: 'Input',
       componentProps: { clearable: true },
+      fieldName: 'requestPath',
+      label: '请求路径',
+    },
+    {
+      component: 'InputNumber',
+      componentProps: {
+        controlsPosition: 'right',
+        min: 0,
+        placeholder: '请输入毫秒数',
+        precision: 0,
+        step: 1,
+        stepStrictly: true,
+      },
+      fieldName: 'minDurationMillis',
+      label: '最低耗时',
+    },
+    {
+      component: 'Input',
+      componentProps: { clearable: true },
       fieldName: 'traceId',
       label: '链路 ID',
     },
   ],
-  showCollapseButton: false,
+  showCollapseButton: true,
   submitOnEnter: true,
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4',
+  wrapperClass:
+    'grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.35fr)_minmax(0,0.85fr)]',
 };
 
 const columns = [
@@ -121,6 +164,7 @@ const columns = [
   textColumn<OperationLogItem>({
     field: 'traceId',
     minWidth: 240,
+    slots: { default: 'traceId' },
     title: '链路 ID',
   }),
   actionColumn<OperationLogItem>({ width: 80 }),
@@ -140,8 +184,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
         ) =>
           pageOperationLogsApi({
             action: values.action?.trim() || undefined,
+            minDurationMillis: values.minDurationMillis,
+            occurredAtEnd: values.occurredAtEnd,
+            occurredAtStart: values.occurredAtStart,
             page: page.currentPage,
             pageSize: page.pageSize,
+            requestPath: values.requestPath?.trim() || undefined,
             success: values.success,
             traceId: values.traceId?.trim() || undefined,
             username: values.username?.trim() || undefined,
@@ -193,6 +241,9 @@ function rowActions(row: OperationLogItem): RowAction[] {
 
       <template #success="{ row }">
         <EnumTag :options="LOG_RESULT_TAG_OPTIONS" :value="row.success" />
+      </template>
+      <template #traceId="{ row }">
+        <CopyableText :value="row.traceId" />
       </template>
       <template #action="{ row }">
         <RowActions :actions="rowActions(row)" />

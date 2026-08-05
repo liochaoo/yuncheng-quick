@@ -26,7 +26,10 @@ public class FileProperties {
         Map<String, Policy> policies = new LinkedHashMap<>();
         policies.put(FilePolicyCodes.ATTACHMENT, new Policy(
                 DataSize.ofMegabytes(20),
-                setOf("pdf", "txt", "csv", "xls", "xlsx", "doc", "docx", "ppt", "pptx", "zip", "rar", "7z")
+                setOf(
+                        "pdf", "txt", "csv", "xls", "xlsx", "doc", "docx", "ppt", "pptx",
+                        "zip", "rar", "7z", "jpg", "jpeg", "png", "gif", "webp", "bmp", "ico"
+                )
         ));
         policies.put(FilePolicyCodes.IMAGE, new Policy(
                 DataSize.ofMegabytes(10),

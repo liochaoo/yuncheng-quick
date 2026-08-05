@@ -1,6 +1,8 @@
 package com.yuncheng.system.log.dto;
 
 import com.yuncheng.framework.web.page.PageQuery;
+import java.time.Instant;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /** 登录日志分页条件。 */
 public class LoginLogPageQuery extends PageQuery {
@@ -10,6 +12,10 @@ public class LoginLogPageQuery extends PageQuery {
     private Boolean success;
     private String clientType;
     private String traceId;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private Instant occurredAtStart;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private Instant occurredAtEnd;
 
     public String getLoginName() {
         return loginName;
@@ -49,5 +55,21 @@ public class LoginLogPageQuery extends PageQuery {
 
     public void setTraceId(String traceId) {
         this.traceId = traceId;
+    }
+
+    public Instant getOccurredAtStart() {
+        return occurredAtStart;
+    }
+
+    public void setOccurredAtStart(Instant occurredAtStart) {
+        this.occurredAtStart = occurredAtStart;
+    }
+
+    public Instant getOccurredAtEnd() {
+        return occurredAtEnd;
+    }
+
+    public void setOccurredAtEnd(Instant occurredAtEnd) {
+        this.occurredAtEnd = occurredAtEnd;
     }
 }

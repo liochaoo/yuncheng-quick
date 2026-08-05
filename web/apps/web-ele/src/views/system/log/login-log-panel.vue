@@ -14,6 +14,7 @@ import { ElButton } from 'element-plus';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { pageLoginLogsApi } from '#/api/system/log';
+import CopyableText from '#/components/display/copyable-text.vue';
 import EnumTag from '#/components/display/enum-tag.vue';
 import RowActions from '#/components/table/row-actions.vue';
 import TableToolbarActions from '#/components/table/table-toolbar-actions.vue';
@@ -24,7 +25,10 @@ import {
   textColumn,
 } from '#/utils/table-columns';
 
-import { CLIENT_TYPE_TAG_OPTIONS } from '../_shared/display-options';
+import {
+  CLIENT_TYPE_SELECT_OPTIONS,
+  CLIENT_TYPE_TAG_OPTIONS,
+} from '../_shared/display-options';
 import LogCleanDialog from './log-clean-dialog.vue';
 import {
   LOG_RESULT_SELECT_OPTIONS,
@@ -32,6 +36,7 @@ import {
   LOGIN_EVENT_SELECT_OPTIONS,
   LOGIN_EVENT_TAG_OPTIONS,
 } from './log-options';
+import { formatOccurredAtBoundary } from './log-query-utils';
 import LoginLogDetailDrawer from './login-log-detail-drawer.vue';
 import { LOG_PERMISSION_CODES } from './permission-codes';
 
@@ -49,13 +54,43 @@ const [DetailDrawer, detailDrawerApi] = useVbenDrawer({
 });
 
 const formOptions: VbenFormProps = {
-  collapsed: false,
+  collapsed: true,
+  collapsedRows: 1,
+  fieldMappingTime: [
+    [
+      'occurredAtRange',
+      ['occurredAtStart', 'occurredAtEnd'],
+      formatOccurredAtBoundary,
+    ],
+  ],
   schema: [
     {
       component: 'Input',
       componentProps: { clearable: true },
       fieldName: 'loginName',
       label: '登录名',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        clearable: true,
+        options: LOG_RESULT_SELECT_OPTIONS,
+      },
+      fieldName: 'success',
+      label: '执行结果',
+    },
+    {
+      component: 'DatePicker',
+      componentProps: {
+        clearable: true,
+        endPlaceholder: '结束时间',
+        format: 'YYYY-MM-DD HH:mm:ss',
+        rangeSeparator: '至',
+        startPlaceholder: '开始时间',
+        type: 'datetimerange',
+      },
+      fieldName: 'occurredAtRange',
+      label: '发生时间',
     },
     {
       component: 'Select',
@@ -70,10 +105,10 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         clearable: true,
-        options: LOG_RESULT_SELECT_OPTIONS,
+        options: CLIENT_TYPE_SELECT_OPTIONS,
       },
-      fieldName: 'success',
-      label: '执行结果',
+      fieldName: 'clientType',
+      label: '客户端',
     },
     {
       component: 'Input',
@@ -82,9 +117,10 @@ const formOptions: VbenFormProps = {
       label: '链路 ID',
     },
   ],
-  showCollapseButton: false,
+  showCollapseButton: true,
   submitOnEnter: true,
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4',
+  wrapperClass:
+    'grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.35fr)_minmax(0,0.85fr)]',
 };
 
 const columns = [
@@ -125,6 +161,7 @@ const columns = [
   textColumn<LoginLogItem>({
     field: 'traceId',
     minWidth: 240,
+    slots: { default: 'traceId' },
     title: '链路 ID',
   }),
   actionColumn<LoginLogItem>({ width: 80 }),
@@ -143,8 +180,11 @@ const [Grid, gridApi] = useVbenVxeGrid({
           values: Partial<LoginLogPageParams>,
         ) =>
           pageLoginLogsApi({
+            clientType: values.clientType,
             eventType: values.eventType,
             loginName: values.loginName?.trim() || undefined,
+            occurredAtEnd: values.occurredAtEnd,
+            occurredAtStart: values.occurredAtStart,
             page: page.currentPage,
             pageSize: page.pageSize,
             success: values.success,
@@ -200,6 +240,9 @@ function rowActions(row: LoginLogItem): RowAction[] {
       </template>
       <template #success="{ row }">
         <EnumTag :options="LOG_RESULT_TAG_OPTIONS" :value="row.success" />
+      </template>
+      <template #traceId="{ row }">
+        <CopyableText :value="row.traceId" />
       </template>
       <template #clientType="{ row }">
         <EnumTag :options="CLIENT_TYPE_TAG_OPTIONS" :value="row.clientType" />
