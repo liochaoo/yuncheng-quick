@@ -162,6 +162,11 @@ public class UserQueryService implements SystemUserQueryApi {
         return PageResult.of(items, page.getTotal(), query);
     }
 
+    public List<SystemUser> usersForExport(UserPageQuery query, int limit) {
+        normalize(query);
+        return userMapper.selectUsersForExport(query, limit);
+    }
+
     public UserDetail detail(Long userId) {
         SystemUser user = requireUser(userId);
         UserOrgAssignment orgAssignment = userOrgService.assignment(userId);

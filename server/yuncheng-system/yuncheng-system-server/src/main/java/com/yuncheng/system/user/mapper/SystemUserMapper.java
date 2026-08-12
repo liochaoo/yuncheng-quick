@@ -28,6 +28,11 @@ public interface SystemUserMapper extends BaseMapper<SystemUser> {
 
     IPage<SystemUser> selectUserPage(Page<SystemUser> page, @Param("query") UserPageQuery query);
 
+    List<SystemUser> selectUsersForExport(
+            @Param("query") UserPageQuery query,
+            @Param("limit") int limit
+    );
+
     IPage<SystemUser> selectRoleUserPage(
             Page<SystemUser> page,
             @Param("roleId") Long roleId,

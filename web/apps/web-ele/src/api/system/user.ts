@@ -1,6 +1,7 @@
 import type { OrgType } from '#/api/common/organization';
 import type { AvailabilityResult, RoleSummary } from '#/api/system/types';
 import type { PageResult } from '#/api/types';
+import type { ExcelImportResult } from '#/components/excel';
 
 import { requestClient } from '#/api/request';
 
@@ -86,6 +87,8 @@ export interface UserPageParams {
   username?: string;
 }
 
+export type UserExportParams = Omit<UserPageParams, 'page' | 'pageSize'>;
+
 export interface UserCreateRequest {
   email?: string;
   password?: string;
@@ -131,6 +134,20 @@ export async function getUserFormDataApi(id: string) {
 
 export async function createUserApi(data: UserCreateRequest) {
   return requestClient.post<string>('/system/users', data);
+}
+
+export async function downloadUserImportTemplateApi() {
+  return requestClient.download<Blob>('/system/users/import-template');
+}
+
+export async function importUsersApi(file: File) {
+  return requestClient.upload<ExcelImportResult>('/system/users/import', {
+    file,
+  });
+}
+
+export async function exportUsersApi(params: UserExportParams) {
+  return requestClient.download<Blob>('/system/users/export', { params });
 }
 
 export async function updateUserApi(id: string, data: UserUpdateRequest) {

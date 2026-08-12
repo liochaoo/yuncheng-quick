@@ -164,6 +164,32 @@ public class UserRoleService {
         insertBatch(relations(userId, addedIds));
     }
 
+    public void bindUserRolesBatch(Map<Long, ? extends Collection<Long>> userRoleIds) {
+        if (userRoleIds == null || userRoleIds.isEmpty()) {
+            return;
+        }
+        Set<Long> allRoleIds = userRoleIds.values().stream()
+                .flatMap(Collection::stream)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        if (allRoleIds.isEmpty()) {
+            throw PlatformException.badRequest("至少需要选择一个角色");
+        }
+        Map<Long, SystemRole> roles = roleQueryService.requireRoles(allRoleIds);
+        if (!roleAccessService.isSuperAdmin()
+                && roles.values().stream().anyMatch(role -> role.getRoleType() == RoleType.SYSTEM)) {
+            throw PlatformException.forbidden("系统内置角色只能由超级管理员分配");
+        }
+        List<SystemUserRole> relations = new ArrayList<>();
+        userRoleIds.forEach((userId, roleIds) -> {
+            Set<Long> distinctRoleIds = new LinkedHashSet<>(roleIds);
+            if (distinctRoleIds.isEmpty() || distinctRoleIds.contains(null)) {
+                throw PlatformException.badRequest("至少需要选择一个角色");
+            }
+            distinctRoleIds.forEach(roleId -> relations.add(relation(userId, roleId)));
+        });
+        insertBatch(relations);
+    }
+
     public void addUsersToRole(Long roleId, Collection<Long> userIds) {
         Set<Long> existingUserIds = new HashSet<>(userRoleMapper.selectList(
                         new LambdaQueryWrapper<SystemUserRole>()

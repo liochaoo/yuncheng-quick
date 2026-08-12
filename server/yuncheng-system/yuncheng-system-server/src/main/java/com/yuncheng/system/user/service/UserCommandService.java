@@ -14,6 +14,8 @@ import com.yuncheng.system.role.service.UserRoleService;
 import com.yuncheng.system.security.service.SecurityPolicyService;
 import com.yuncheng.system.session.service.LoginSessionService;
 import com.yuncheng.system.user.dto.UserCreateRequest;
+import com.yuncheng.system.user.dto.UserImportItem;
+import com.yuncheng.system.user.dto.UserOrgAssignment;
 import com.yuncheng.system.user.dto.UserUpdateRequest;
 import com.yuncheng.system.user.entity.SystemUser;
 import com.yuncheng.system.user.enums.PasswordSetupMode;
@@ -194,6 +196,47 @@ public class UserCommandService implements SystemUserCommandApi {
         Map<String, Long> result = new LinkedHashMap<>(users.size());
         users.forEach(user -> result.put(user.getUsername(), user.getId()));
         return result;
+    }
+
+    @Transactional
+    public int importUsers(List<UserImportItem> items) {
+        if (items == null || items.isEmpty()) {
+            throw PlatformException.badRequest("导入文件中没有用户数据");
+        }
+        String passwordHash = securityPolicyService.defaultPasswordHash();
+        Instant now = Instant.now();
+        List<SystemUser> users = new ArrayList<>(items.size());
+        for (UserImportItem item : items) {
+            SystemUser user = new SystemUser();
+            user.setUsername(item.username());
+            user.setPasswordHash(passwordHash);
+            user.setPasswordChangedAt(now);
+            user.setPasswordChangeRequired(true);
+            user.setLoginFailedCount(0);
+            user.setRealName(item.realName());
+            user.setPhone(item.phone());
+            user.setEmail(item.email());
+            user.setSortOrder(item.sortOrder());
+            user.setEnabled(item.enabled());
+            users.add(user);
+        }
+        requireBatchAvailable(users);
+        userMapper.insert(users, BATCH_SIZE);
+        Map<Long, UserOrgAssignment> orgAssignments = new LinkedHashMap<>();
+        Map<Long, List<Long>> roleAssignments = new LinkedHashMap<>();
+        for (int index = 0; index < users.size(); index++) {
+            UserImportItem item = items.get(index);
+            Long userId = users.get(index).getId();
+            orgAssignments.put(userId, new UserOrgAssignment(
+                    item.orgIds().stream().map(String::valueOf).toList(),
+                    item.primaryOrgId().toString()
+            ));
+            roleAssignments.put(userId, item.roleIds());
+        }
+        userOrgService.bindAssignmentsBatch(orgAssignments);
+        userRoleService.bindUserRolesBatch(roleAssignments);
+        passwordHistoryService.recordCreatedUsers(users);
+        return users.size();
     }
 
     @Transactional

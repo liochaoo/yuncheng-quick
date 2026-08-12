@@ -10,6 +10,7 @@ public final class UserPermissionCodes {
     public static final String RESET_PASSWORD = "system:user:reset-password";
     public static final String UNLOCK = "system:user:unlock";
     public static final String DELETE = "system:user:delete";
+    public static final String EXPORT = "system:user:export";
 
     private UserPermissionCodes() {
     }

@@ -3,6 +3,7 @@ import type { VbenFormProps } from '#/adapter/form';
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { OrgOption } from '#/api/common/organization';
 import type {
+  UserExportParams,
   UserListItem,
   UserOrgRelationType,
   UserOrgScope,
@@ -14,8 +15,9 @@ import { ref } from 'vue';
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenDrawer } from '@vben/common-ui';
-import { Plus, Trash2 } from '@vben/icons';
+import { ArrowUpToLine, Download, Plus, Trash2 } from '@vben/icons';
 import { useUserStore } from '@vben/stores';
+import { downloadFileFromBlob } from '@vben/utils';
 
 import { ElButton, ElMessage, ElOption, ElSelect, ElTag } from 'element-plus';
 
@@ -24,10 +26,14 @@ import {
   batchDeleteUsersApi,
   changeUserStatusApi,
   deleteUserApi,
+  downloadUserImportTemplateApi,
+  exportUsersApi,
+  importUsersApi,
   pageUsersApi,
   unlockUserLoginApi,
 } from '#/api/system/user';
 import EnabledStatus from '#/components/display/enabled-status.vue';
+import { ExcelImportDialog } from '#/components/excel';
 import { AsyncOrgTree, OrgPath } from '#/components/organization';
 import RowActions from '#/components/table/row-actions.vue';
 import TableToolbarActions from '#/components/table/table-toolbar-actions.vue';
@@ -65,6 +71,7 @@ const canAccess = {
   changeStatus: hasAccessByCodes([USER_PERMISSION_CODES.CHANGE_STATUS]),
   delete: hasAccessByCodes([USER_PERMISSION_CODES.DELETE]),
   edit: hasAccessByCodes([USER_PERMISSION_CODES.EDIT]),
+  export: hasAccessByCodes([USER_PERMISSION_CODES.EXPORT]),
   resetPassword: hasAccessByCodes([USER_PERMISSION_CODES.RESET_PASSWORD]),
   unlock: hasAccessByCodes([USER_PERMISSION_CODES.UNLOCK]),
 };
@@ -86,6 +93,8 @@ const selectedOrg = ref<OrgOption>();
 const selectedOrgId = ref<string>();
 const orgScope = ref<UserOrgScope>('DIRECT');
 const orgRelationType = ref<UserOrgRelationType>('ALL');
+const importDialog = ref<InstanceType<typeof ExcelImportDialog>>();
+const exporting = ref(false);
 
 const formOptions: VbenFormProps = {
   collapsed: false,
@@ -229,6 +238,35 @@ function refresh() {
   gridApi.query();
 }
 
+function currentExportParams(): UserExportParams {
+  const values = (gridApi.formApi.getLatestSubmissionValues() ??
+    {}) as UserSearchValues;
+  return {
+    enabled: values.enabled,
+    orgId: selectedOrgId.value,
+    orgRelationType: selectedOrgId.value ? orgRelationType.value : undefined,
+    orgScope: selectedOrgId.value ? orgScope.value : undefined,
+    realName: values.realName?.trim() || undefined,
+    username: values.username?.trim() || undefined,
+  };
+}
+
+async function exportUsers() {
+  exporting.value = true;
+  try {
+    const source = await exportUsersApi(currentExportParams());
+    const now = new Date();
+    const date = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('');
+    downloadFileFromBlob({ fileName: `用户数据_${date}.xlsx`, source });
+  } finally {
+    exporting.value = false;
+  }
+}
+
 function selectOrg(org?: OrgOption) {
   selectedOrg.value = org;
   selectedOrgId.value = org?.id;
@@ -353,6 +391,14 @@ function batchRemove() {
     <DetailDrawer />
     <FormDrawer @success="refresh" />
     <PasswordDrawer @success="refresh" />
+    <ExcelImportDialog
+      ref="importDialog"
+      :download-template="downloadUserImportTemplateApi"
+      :import-file="importUsersApi"
+      template-filename="用户导入模板.xlsx"
+      title="导入用户"
+      @success="refresh"
+    />
     <div class="grid h-full min-h-0 grid-cols-[280px_minmax(0,1fr)] gap-4">
       <section class="flex min-h-0 flex-col rounded-lg border bg-card">
         <header class="border-b px-4 py-3">
@@ -402,6 +448,18 @@ function batchRemove() {
             >
               <Plus class="mr-1 size-4" />
               新增用户
+            </ElButton>
+            <ElButton v-if="canAccess.add" @click="importDialog?.open()">
+              <ArrowUpToLine class="mr-1 size-4" />
+              导入用户
+            </ElButton>
+            <ElButton
+              v-if="canAccess.export"
+              :loading="exporting"
+              @click="exportUsers"
+            >
+              <Download class="mr-1 size-4" />
+              导出用户
             </ElButton>
             <ElButton
               v-if="canAccess.delete"

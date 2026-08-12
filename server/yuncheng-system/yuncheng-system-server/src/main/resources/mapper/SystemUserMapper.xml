@@ -28,6 +28,19 @@
     <select id="selectUserPage" resultType="com.yuncheng.system.user.entity.SystemUser">
         SELECT u.*
         FROM system_user u
+        <include refid="userQueryConditions"/>
+        ORDER BY u.sort_order ASC, u.id ASC
+    </select>
+
+    <select id="selectUsersForExport" resultType="com.yuncheng.system.user.entity.SystemUser">
+        SELECT u.*
+        FROM system_user u
+        <include refid="userQueryConditions"/>
+        ORDER BY u.sort_order ASC, u.id ASC
+        LIMIT #{limit}
+    </select>
+
+    <sql id="userQueryConditions">
         <where>
             <if test="query.username != null and query.username != ''">
                 AND u.username LIKE CONCAT('%', #{query.username}, '%')
@@ -61,8 +74,7 @@
                 )
             </if>
         </where>
-        ORDER BY u.sort_order ASC, u.id ASC
-    </select>
+    </sql>
 
     <select id="selectRoleUserPage" resultType="com.yuncheng.system.user.entity.SystemUser">
         SELECT u.id, u.username, u.real_name, u.enabled

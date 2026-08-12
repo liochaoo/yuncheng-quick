@@ -49,6 +49,7 @@
         <x-file-storage.version>2.3.0</x-file-storage.version>
         <tika.version>3.3.0</tika.version>
         <poi.version>5.5.1</poi.version>
+        <commons-compress.version>1.28.0</commons-compress.version>
         <minio.version>8.6.0</minio.version>
         <okhttp.version>5.1.0</okhttp.version>
         <bouncycastle.version>1.84</bouncycastle.version>
@@ -88,6 +89,16 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi</artifactId>
                 <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.minio</groupId>

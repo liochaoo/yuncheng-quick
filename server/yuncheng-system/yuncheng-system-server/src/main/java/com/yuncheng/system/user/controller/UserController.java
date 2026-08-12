@@ -1,23 +1,26 @@
 package com.yuncheng.system.user.controller;
 
+import com.yuncheng.framework.excel.ExcelFileSupport;
+import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.framework.security.authorization.annotation.RequirePermission;
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.framework.web.response.AvailabilityResponse;
-import com.yuncheng.framework.log.annotation.OperationLog;
+import com.yuncheng.system.user.constant.UserPermissionCodes;
 import com.yuncheng.system.user.dto.PasswordResetRequest;
 import com.yuncheng.system.user.dto.UserCreateRequest;
 import com.yuncheng.system.user.dto.UserDetail;
 import com.yuncheng.system.user.dto.UserFormData;
 import com.yuncheng.system.user.dto.UserListItem;
-import com.yuncheng.system.user.dto.UserPageQuery;
 import com.yuncheng.system.user.dto.UserIdListRequest;
+import com.yuncheng.system.user.dto.UserImportResult;
+import com.yuncheng.system.user.dto.UserPageQuery;
 import com.yuncheng.system.user.dto.UserStatusRequest;
 import com.yuncheng.system.user.dto.UserUniquenessCheckRequest;
 import com.yuncheng.system.user.dto.UserUpdateRequest;
-import com.yuncheng.system.user.constant.UserPermissionCodes;
 import com.yuncheng.system.user.service.UserCommandService;
+import com.yuncheng.system.user.service.UserExchangeService;
 import com.yuncheng.system.user.service.UserPasswordService;
 import com.yuncheng.system.user.service.UserQueryService;
 import com.yuncheng.system.user.service.UserUniquenessService;
@@ -25,6 +28,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +40,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /** 用户管理接口。 */
 @Validated
@@ -46,17 +55,20 @@ public class UserController {
     private final UserCommandService commandService;
     private final UserPasswordService passwordService;
     private final UserUniquenessService uniquenessService;
+    private final UserExchangeService exchangeService;
 
     public UserController(
             UserQueryService queryService,
             UserCommandService commandService,
             UserPasswordService passwordService,
-            UserUniquenessService uniquenessService
+            UserUniquenessService uniquenessService,
+            UserExchangeService exchangeService
     ) {
         this.queryService = queryService;
         this.commandService = commandService;
         this.passwordService = passwordService;
         this.uniquenessService = uniquenessService;
+        this.exchangeService = exchangeService;
     }
 
     @GetMapping
@@ -85,6 +97,41 @@ public class UserController {
     @OperationLog("新增用户")
     public ApiResponse<String> create(@Valid @RequestBody UserCreateRequest request) {
         return ApiResponse.success(commandService.create(request).toString());
+    }
+
+    @GetMapping("/import-template")
+    @Operation(summary = "下载用户导入模板")
+    @RequirePermission(UserPermissionCodes.ADD)
+    public void importTemplate(HttpServletResponse response) throws IOException {
+        ExcelFileSupport.writeXlsx(
+                exchangeService.template(),
+                "用户导入模板.xlsx",
+                response
+        );
+    }
+
+    @PostMapping("/import")
+    @RequirePermission(UserPermissionCodes.ADD)
+    @OperationLog("导入用户")
+    public ApiResponse<UserImportResult> importUsers(
+            @RequestPart("file") MultipartFile file
+    ) {
+        return ApiResponse.success(exchangeService.importUsers(file));
+    }
+
+    @GetMapping("/export")
+    @RequirePermission(UserPermissionCodes.EXPORT)
+    @OperationLog("导出用户")
+    public void exportUsers(
+            @Valid UserPageQuery query,
+            HttpServletResponse response
+    ) throws IOException {
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        ExcelFileSupport.writeXlsx(
+                exchangeService.exportUsers(query),
+                "用户数据_" + date + ".xlsx",
+                response
+        );
     }
 
     @PostMapping("/uniqueness-check")

@@ -122,3 +122,14 @@ ALTER TABLE system_user
 ALTER TABLE system_security_policy
     ADD COLUMN default_password_hash VARCHAR(255) NULL
         COMMENT '系统公共默认密码摘要' AFTER password_history_count;
+
+INSERT INTO system_menu (
+    id, parent_id, menu_type, menu_name, route_name, route_path,
+    component_path, redirect, permission_code, sort_order, icon,
+    affix_tab, created_at, created_by, updated_at, updated_by
+)
+VALUES (
+    100000000000000117, 100000000000000110, 'BUTTON', '导出用户', NULL, NULL,
+    NULL, NULL, 'system:user:export', 70, NULL,
+    0, CURRENT_TIMESTAMP(3), 0, CURRENT_TIMESTAMP(3), 0
+);

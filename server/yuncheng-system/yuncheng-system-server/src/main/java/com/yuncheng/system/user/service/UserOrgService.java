@@ -6,6 +6,7 @@ import com.yuncheng.system.organization.entity.SystemOrg;
 import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.user.constant.UserOrgConstants;
 import com.yuncheng.system.user.dto.UserOrgAssignment;
+import com.yuncheng.system.user.dto.UserOrgCodeAssignment;
 import com.yuncheng.system.user.dto.UserPrimaryOrgSummary;
 import com.yuncheng.system.user.entity.SystemUserOrg;
 import com.yuncheng.system.user.mapper.SystemUserOrgMapper;
@@ -91,6 +92,57 @@ public class UserOrgService {
         insertBatch(userPrimaryOrgIds.entrySet().stream()
                 .map(entry -> relation(entry.getKey(), entry.getValue(), true))
                 .toList());
+    }
+
+    public void bindAssignmentsBatch(Map<Long, UserOrgAssignment> assignments) {
+        if (assignments == null || assignments.isEmpty()) {
+            return;
+        }
+        Set<Long> allOrgIds = new LinkedHashSet<>();
+        List<SystemUserOrg> relations = new java.util.ArrayList<>();
+        assignments.forEach((userId, assignment) -> {
+            Long primaryOrgId = Long.valueOf(assignment.primaryOrgId());
+            List<Long> orgIds = assignment.orgIds().stream().map(Long::valueOf).toList();
+            requirePositiveIds(userId, primaryOrgId);
+            Set<Long> validated = validate(orgIds, primaryOrgId);
+            allOrgIds.addAll(validated);
+            validated.forEach(orgId -> relations.add(
+                    relation(userId, orgId, orgId.equals(primaryOrgId))
+            ));
+        });
+        orgQueryService.requireOrgs(allOrgIds);
+        insertBatch(relations);
+    }
+
+    public Map<Long, UserOrgCodeAssignment> codeAssignmentsByUserIds(Collection<Long> userIds) {
+        List<SystemUserOrg> relations = relationsByUserIds(userIds);
+        if (relations.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, SystemOrg> orgs = orgQueryService.requireOrgs(
+                relations.stream().map(SystemUserOrg::getOrgId).toList()
+        );
+        Map<Long, List<SystemUserOrg>> grouped = relations.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        SystemUserOrg::getUserId,
+                        LinkedHashMap::new,
+                        java.util.stream.Collectors.toList()
+                ));
+        Map<Long, UserOrgCodeAssignment> result = new LinkedHashMap<>();
+        grouped.forEach((userId, userRelations) -> {
+            SystemUserOrg primary = userRelations.stream()
+                    .filter(item -> Boolean.TRUE.equals(item.getPrimaryOrg()))
+                    .findFirst()
+                    .orElseThrow(() -> PlatformException.serviceUnavailable("用户主组织数据不完整"));
+            result.put(userId, new UserOrgCodeAssignment(
+                    orgs.get(primary.getOrgId()).getOrgCode(),
+                    userRelations.stream()
+                            .filter(item -> !Boolean.TRUE.equals(item.getPrimaryOrg()))
+                            .map(item -> orgs.get(item.getOrgId()).getOrgCode())
+                            .toList()
+            ));
+        });
+        return result;
     }
 
     public UserOrgAssignment assignment(Long userId) {

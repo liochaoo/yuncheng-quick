@@ -105,6 +105,36 @@ function addDataResponseInterceptor(client: RequestClient) {
 }
 
 /**
+ * 下载请求失败时，Axios 会把后端 JSON 错误响应包装成 Blob。
+ * 先还原平台错误对象，后续认证和统一错误提示即可继续复用原有逻辑。
+ */
+function addBlobErrorResponseInterceptor(client: RequestClient) {
+  client.addResponseInterceptor({
+    rejected: async (error) => {
+      const response = error?.response;
+      const responseData = response?.data;
+      const contentType = String(
+        response?.headers?.get?.('content-type') ??
+          response?.headers?.['content-type'] ??
+          '',
+      ).toLowerCase();
+      if (
+        responseData instanceof Blob &&
+        (contentType.includes('application/json') ||
+          contentType.includes('+json'))
+      ) {
+        try {
+          response.data = JSON.parse(await responseData.text());
+        } catch {
+          // 无效 JSON 继续交由通用错误提示处理。
+        }
+      }
+      throw error;
+    },
+  });
+}
+
+/**
  * 添加通用错误提示。
  */
 function addErrorResponseInterceptor(client: RequestClient) {
@@ -174,6 +204,9 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   // 处理返回的响应数据格式
   addDataResponseInterceptor(client);
 
+  // 还原文件下载失败时被包装成 Blob 的 JSON 错误响应
+  addBlobErrorResponseInterceptor(client);
+
   // token过期的处理
   client.addResponseInterceptor(
     authenticateResponseInterceptor({
@@ -224,4 +257,5 @@ authRequestClient.addRequestInterceptor({
 });
 
 addDataResponseInterceptor(authRequestClient);
+addBlobErrorResponseInterceptor(authRequestClient);
 addErrorResponseInterceptor(authRequestClient);

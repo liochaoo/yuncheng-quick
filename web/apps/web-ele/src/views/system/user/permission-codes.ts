@@ -4,6 +4,7 @@ export const USER_PERMISSION_CODES = {
   CHANGE_STATUS: 'system:user:change-status',
   DELETE: 'system:user:delete',
   EDIT: 'system:user:edit',
+  EXPORT: 'system:user:export',
   RESET_PASSWORD: 'system:user:reset-password',
   UNLOCK: 'system:user:unlock',
 } as const;

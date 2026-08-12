@@ -40,6 +40,11 @@
         </dependency>
         <dependency>
             <groupId>com.yuncheng</groupId>
+            <artifactId>yuncheng-framework-excel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yuncheng</groupId>
             <artifactId>yuncheng-framework-job</artifactId>
             <version>${project.version}</version>
         </dependency>

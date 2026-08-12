@@ -21,6 +21,7 @@
         <module>yuncheng-framework-mail</module>
         <module>yuncheng-framework-captcha</module>
         <module>yuncheng-framework-file</module>
+        <module>yuncheng-framework-excel</module>
         <module>yuncheng-framework-job</module>
         <module>yuncheng-framework-log</module>
         <module>yuncheng-framework-openapi</module>

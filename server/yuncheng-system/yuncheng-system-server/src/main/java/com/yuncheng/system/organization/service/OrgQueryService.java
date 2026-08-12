@@ -144,6 +144,33 @@ public class OrgQueryService implements SystemOrgQueryApi {
         return result;
     }
 
+    public List<SystemOrg> allOrgs() {
+        return orgMapper.selectList(new LambdaQueryWrapper<SystemOrg>()
+                .orderByAsc(SystemOrg::getPathIds));
+    }
+
+    public Map<String, SystemOrg> orgsByCodes(java.util.Collection<String> orgCodes) {
+        Set<String> normalizedCodes = orgCodes == null
+                ? Set.of()
+                : orgCodes.stream()
+                        .map(this::normalizedCode)
+                        .filter(StringUtils::hasText)
+                        .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+        if (normalizedCodes.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, SystemOrg> result = orgMapper.selectList(
+                        new LambdaQueryWrapper<SystemOrg>().in(SystemOrg::getOrgCode, normalizedCodes)
+                ).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        SystemOrg::getOrgCode,
+                        org -> org,
+                        (left, right) -> left,
+                        LinkedHashMap::new
+                ));
+        return result;
+    }
+
     @Override
     public Optional<SystemOrgInfo> findById(Long orgId) {
         return Optional.ofNullable(orgId == null ? null : orgMapper.selectById(orgId))

@@ -139,6 +139,34 @@ public class RoleQueryService implements SystemRoleQueryApi {
         return roles;
     }
 
+    public List<SystemRole> assignableRoles() {
+        return roleMapper.selectList(new LambdaQueryWrapper<SystemRole>()
+                .eq(!roleAccessService.isSuperAdmin(), SystemRole::getRoleType, RoleType.CUSTOM)
+                .orderByAsc(SystemRole::getSortOrder, SystemRole::getId));
+    }
+
+    public Map<String, SystemRole> rolesByCodes(Collection<String> roleCodes) {
+        Set<String> normalizedCodes = roleCodes == null
+                ? Set.of()
+                : roleCodes.stream()
+                        .map(this::normalizedCode)
+                        .filter(StringUtils::hasText)
+                        .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+        if (normalizedCodes.isEmpty()) {
+            return Map.of();
+        }
+        return roleMapper.selectList(new LambdaQueryWrapper<SystemRole>()
+                        .in(SystemRole::getRoleCode, normalizedCodes)
+                        .eq(!roleAccessService.isSuperAdmin(), SystemRole::getRoleType, RoleType.CUSTOM))
+                .stream()
+                .collect(Collectors.toMap(
+                        SystemRole::getRoleCode,
+                        Function.identity(),
+                        (left, right) -> left,
+                        LinkedHashMap::new
+                ));
+    }
+
     private Map<Long, Long> userCounts(List<Long> roleIds) {
         if (roleIds.isEmpty()) {
             return Map.of();
