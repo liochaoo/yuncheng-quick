@@ -1,10 +1,19 @@
 # 云程快速开发平台
 
-Yuncheng Quick 是一套基于 Spring Boot 4 和 Vben Admin 5.7 的企业级管理系统快速开发框架。
+![云程快速开发平台](docs/images/project-banner.png)
 
-> 最新发布版本：`v0.1.0-alpha.1`
+[![Release](https://img.shields.io/github/v/release/liochaoo/yuncheng-quick)](https://github.com/liochaoo/yuncheng-quick/releases)
+[![License](https://img.shields.io/github/license/liochaoo/yuncheng-quick)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-21-ED8B00)](https://openjdk.org/projects/jdk/21/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F)](https://spring.io/projects/spring-boot)
+
+> 企业级应用开发底座与可组合业务产品平台
+
+Yuncheng Quick 是一套基于 Spring Boot 4 和 Vben Admin 5.7 的企业级应用开发平台，提供统一的用户、权限、菜单、日志、安全、文件和工程基础能力，用于构建企业管理系统及可组合的业务产品。
+
+> 最新发布版本：`v1.0.0`
 >
-> 项目仍处于早期预览阶段，适合学习、体验和参与测试。用于生产环境前，请自行完成安全、性能、兼容性和业务适配评估。
+> `v1.0.0` 是平台基础底座的首个正式版本。用于生产环境前，请根据实际场景完成安全、性能、兼容性和业务适配评估。
 
 ## 在线体验
 
@@ -16,9 +25,9 @@ Yuncheng Quick 是一套基于 Spring Boot 4 和 Vben Admin 5.7 的企业级管�
 
 ## 项目介绍
 
-云程快速开发平台面向企业管理系统的快速开发场景，提供统一的前后端工程结构以及常用的系统管理能力。项目采用前后端同仓管理，后端为基于 Spring Boot 4 的模块化单体，前端基于 Vben Admin 5.7 的 Element Plus 版本进行开发。
+云程快速开发平台面向企业应用的开发和长期扩展，将通用系统能力、技术基础设施与后续业务产品保持清晰边界。项目采用前后端同仓管理，后端为基于 Spring Boot 4 的模块化单体，前端基于 Vben Admin 5.7 的 Element Plus 版本进行开发。业务产品可以作为独立模块接入，并复用底座已有的认证授权、安全、日志、文件和配置能力。
 
-![云程快速开发平台架构图](docs/images/architecture.png)
+![云程快速开发平台架构图](docs/images/architecture.svg)
 
 ## 已实现功能
 

@@ -6,10 +6,10 @@
 
     <groupId>com.yuncheng</groupId>
     <artifactId>yuncheng-quick</artifactId>
-    <version>0.1.0-alpha.1</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
     <name>Yuncheng Quick</name>
-    <description>基于 Spring Boot 4 和 Vben Admin 5.7 的企业级管理系统快速开发框架</description>
+    <description>基于 Spring Boot 4 和 Vben Admin 5.7 的企业级应用开发平台</description>
     <url>https://github.com/liochaoo/yuncheng-quick</url>
 
     <licenses>

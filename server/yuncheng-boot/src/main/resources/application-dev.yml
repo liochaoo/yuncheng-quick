@@ -109,7 +109,7 @@ platform:
   auth:
     jwt:
       # JWT 签名密钥，默认值只用于本地开发，生产上线前必须替换。
-      secret: ${PLATFORM_AUTH_JWT_SECRET:ORUfJBj48qpxkuY5OAHHpJU8vvEE0BfDbx+qRDasCpMSMg7/qcjjCIvQWPBUgqkh}
+      secret: ${PLATFORM_AUTH_JWT_SECRET:change-me-for-local-development-only-at-least-32-bytes}
       # JWT 签发者，用于确认 Token 的签发来源。
       issuer: yuncheng-quick
       # JWT 接收方，用于限制 Token 可访问的服务。

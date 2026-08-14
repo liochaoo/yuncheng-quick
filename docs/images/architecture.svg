@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">云程快速开发平台架构图</title>
+  <desc id="desc">展示业务产品扩展层、前端应用、Spring Boot 模块化单体底座与基础设施之间的关系。</desc>
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f4d"/>
+      <stop offset="1" stop-color="#0b5ea8"/>
+    </linearGradient>
+    <linearGradient id="product" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#eef4ff"/>
+      <stop offset="1" stop-color="#e8f8ff"/>
+    </linearGradient>
+    <linearGradient id="foundation" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7faff"/>
+      <stop offset="1" stop-color="#eef6ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#183b68" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .zh { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+      .en { font-family: Inter, Arial, sans-serif; }
+      .title { font-size: 42px; font-weight: 700; fill: #ffffff; }
+      .subtitle { font-size: 20px; fill: #bcecff; letter-spacing: 1px; }
+      .layer-title { font-size: 25px; font-weight: 700; fill: #123c73; }
+      .body { font-size: 18px; fill: #34516f; }
+      .small { font-size: 16px; fill: #58718b; }
+      .box-title { font-size: 21px; font-weight: 700; fill: #174a86; }
+      .box-body { font-size: 16px; fill: #49647e; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f7f9fc"/>
+  <rect x="40" y="30" width="1520" height="105" rx="24" fill="url(#header)" filter="url(#shadow)"/>
+  <text x="95" y="88" class="zh title">云程快速开发平台</text>
+  <text x="95" y="118" class="en subtitle">Yuncheng Quick · Enterprise Application Foundation</text>
+  <text x="1500" y="90" text-anchor="end" class="zh subtitle">v1.0.0 基础版</text>
+
+  <rect x="80" y="170" width="1440" height="110" rx="20" fill="url(#product)" stroke="#5b91dd" stroke-width="2" stroke-dasharray="10 8"/>
+  <text x="125" y="215" class="zh layer-title">业务产品与智能应用扩展层</text>
+  <text x="125" y="246" class="zh small">按独立业务边界组合接入 · 复用底座认证授权、安全、日志、文件与配置能力</text>
+  <text x="125" y="271" class="zh small">业务模块依赖底座公开契约，System 与 Framework 不反向依赖具体产品</text>
+
+  <path d="M800 280 L800 315" stroke="#2782c5" stroke-width="4"/>
+  <path d="M790 307 L800 320 L810 307" fill="none" stroke="#2782c5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="80" y="325" width="1440" height="105" rx="20" fill="#ffffff" stroke="#20a0a8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="125" y="370" class="zh layer-title">前端应用</text>
+  <text x="125" y="402" class="en body">Vben Admin 5.7 · Vue 3 · TypeScript · Element Plus · VXE Table</text>
+  <rect x="1250" y="348" width="210" height="58" rx="15" fill="#ecfbfb" stroke="#42b8bd"/>
+  <text x="1355" y="383" text-anchor="middle" class="en box-title">HTTP JSON API</text>
+
+  <path d="M800 430 L800 465" stroke="#2782c5" stroke-width="4"/>
+  <path d="M790 457 L800 470 L810 457" fill="none" stroke="#2782c5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="80" y="475" width="1440" height="250" rx="24" fill="url(#foundation)" stroke="#477fd0" stroke-width="2" filter="url(#shadow)"/>
+  <text x="125" y="520" class="zh layer-title">Spring Boot 4.1 模块化单体底座</text>
+
+  <rect x="120" y="550" width="420" height="115" rx="18" fill="#ffffff" stroke="#5b91dd" stroke-width="2"/>
+  <text x="330" y="588" text-anchor="middle" class="zh box-title">系统管理 System</text>
+  <text x="330" y="620" text-anchor="middle" class="zh box-body">登录 · 用户 · 组织 · 角色 · 菜单 · 权限</text>
+  <text x="330" y="646" text-anchor="middle" class="zh box-body">日志 · 字典 · 安全策略 · 在线会话</text>
+
+  <rect x="590" y="550" width="610" height="115" rx="18" fill="#ffffff" stroke="#5b91dd" stroke-width="2"/>
+  <text x="895" y="588" text-anchor="middle" class="zh box-title">技术基础 Framework</text>
+  <text x="895" y="620" text-anchor="middle" class="en box-body">Web · Security · MyBatis · Redis · File · Excel</text>
+  <text x="895" y="646" text-anchor="middle" class="en box-body">Mail · Captcha · Job · Log · OpenAPI</text>
+
+  <rect x="1250" y="550" width="230" height="115" rx="18" fill="#ffffff" stroke="#5b91dd" stroke-width="2"/>
+  <text x="1365" y="588" text-anchor="middle" class="zh box-title">启动与初始化</text>
+  <text x="1365" y="621" text-anchor="middle" class="en box-body">Boot · Init</text>
+  <text x="1365" y="646" text-anchor="middle" class="zh box-body">Flyway 基线</text>
+
+  <path d="M800 725 L800 760" stroke="#2782c5" stroke-width="4"/>
+  <path d="M790 752 L800 765 L810 752" fill="none" stroke="#2782c5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="80" y="770" width="330" height="90" rx="18" fill="#ffffff" stroke="#6e97cf" stroke-width="2"/>
+  <text x="245" y="810" text-anchor="middle" class="en box-title">MySQL 8.4</text>
+  <text x="245" y="838" text-anchor="middle" class="zh small">业务数据 · 配置 · 日志</text>
+
+  <rect x="450" y="770" width="300" height="90" rx="18" fill="#ffffff" stroke="#34a5a9" stroke-width="2"/>
+  <text x="600" y="810" text-anchor="middle" class="en box-title">Redis 8.2</text>
+  <text x="600" y="838" text-anchor="middle" class="zh small">会话 · 缓存 · 验证码</text>
+
+  <rect x="790" y="770" width="380" height="90" rx="18" fill="#ffffff" stroke="#6e97cf" stroke-width="2"/>
+  <text x="980" y="810" text-anchor="middle" class="zh box-title">文件存储</text>
+  <text x="980" y="838" text-anchor="middle" class="zh small">本地磁盘（默认）· MinIO · 阿里云 OSS</text>
+
+  <rect x="1210" y="770" width="310" height="90" rx="18" fill="#ffffff" stroke="#6e97cf" stroke-width="2"/>
+  <text x="1365" y="810" text-anchor="middle" class="zh box-title">外部服务</text>
+  <text x="1365" y="838" text-anchor="middle" class="zh small">邮件 · 对象存储</text>
+</svg>

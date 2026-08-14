@@ -15,7 +15,7 @@ body:
     attributes:
       label: 项目版本
       description: 请填写版本号或 Commit ID。
-      placeholder: v0.1.0-alpha.1
+      placeholder: v1.0.0
     validations:
       required: true
 
