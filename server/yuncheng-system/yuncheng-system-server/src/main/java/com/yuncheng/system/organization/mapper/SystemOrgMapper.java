@@ -1,6 +1,7 @@
 package com.yuncheng.system.organization.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.yuncheng.system.organization.dto.OrgNameConflict;
 import com.yuncheng.system.organization.entity.SystemOrg;
 import java.time.Instant;
 import java.util.List;
@@ -16,6 +17,10 @@ public interface SystemOrgMapper extends BaseMapper<SystemOrg> {
     List<SystemOrg> selectSubtreeForUpdate(@Param("pathIds") String pathIds);
 
     Integer selectMaxDepthByPathIds(@Param("pathIds") String pathIds);
+
+    List<OrgNameConflict> selectSiblingNameConflicts(
+            @Param("candidatesJson") String candidatesJson
+    );
 
     int updateSubtreeAfterRename(
             @Param("orgId") Long orgId,

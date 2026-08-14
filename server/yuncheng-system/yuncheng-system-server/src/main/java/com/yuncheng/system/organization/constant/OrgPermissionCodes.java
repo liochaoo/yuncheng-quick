@@ -8,6 +8,7 @@ public final class OrgPermissionCodes {
     public static final String EDIT = "system:organization:edit";
     public static final String MOVE = "system:organization:move";
     public static final String DELETE = "system:organization:delete";
+    public static final String EXPORT = "system:organization:export";
 
     private OrgPermissionCodes() {
     }

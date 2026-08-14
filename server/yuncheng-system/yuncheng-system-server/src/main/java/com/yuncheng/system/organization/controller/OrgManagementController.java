@@ -1,10 +1,12 @@
 package com.yuncheng.system.organization.controller;
 
+import com.yuncheng.framework.excel.ExcelFileSupport;
 import com.yuncheng.framework.log.annotation.OperationLog;
 import com.yuncheng.framework.security.authorization.annotation.RequirePermission;
 import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.framework.web.response.AvailabilityResponse;
+import com.yuncheng.system.exchange.dto.ExcelImportResult;
 import com.yuncheng.system.organization.constant.OrgPermissionCodes;
 import com.yuncheng.system.organization.dto.OrgCreateRequest;
 import com.yuncheng.system.organization.dto.OrgDetail;
@@ -15,12 +17,17 @@ import com.yuncheng.system.organization.dto.OrgMoveRequest;
 import com.yuncheng.system.organization.dto.OrgUpdateRequest;
 import com.yuncheng.system.organization.dto.OrgUniquenessCheckRequest;
 import com.yuncheng.system.organization.service.OrgCommandService;
+import com.yuncheng.system.organization.service.OrgExchangeService;
 import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.organization.service.OrgUniquenessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,7 +38,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /** 组织管理接口。 */
 @Validated
@@ -43,15 +52,18 @@ public class OrgManagementController {
     private final OrgQueryService queryService;
     private final OrgCommandService commandService;
     private final OrgUniquenessService uniquenessService;
+    private final OrgExchangeService exchangeService;
 
     public OrgManagementController(
             OrgQueryService queryService,
             OrgCommandService commandService,
-            OrgUniquenessService uniquenessService
+            OrgUniquenessService uniquenessService,
+            OrgExchangeService exchangeService
     ) {
         this.queryService = queryService;
         this.commandService = commandService;
         this.uniquenessService = uniquenessService;
+        this.exchangeService = exchangeService;
     }
 
     @GetMapping
@@ -86,6 +98,38 @@ public class OrgManagementController {
     @OperationLog("新增组织")
     public ApiResponse<String> create(@Valid @RequestBody OrgCreateRequest request) {
         return ApiResponse.success(commandService.create(request).toString());
+    }
+
+    @GetMapping("/import-template")
+    @Operation(summary = "下载组织导入模板")
+    @RequirePermission(OrgPermissionCodes.ADD)
+    public void importTemplate(HttpServletResponse response) throws IOException {
+        ExcelFileSupport.writeXlsx(
+                exchangeService.template(),
+                "组织导入模板.xlsx",
+                response
+        );
+    }
+
+    @PostMapping("/import")
+    @RequirePermission(OrgPermissionCodes.ADD)
+    @OperationLog("导入组织")
+    public ApiResponse<ExcelImportResult> importOrgs(
+            @RequestPart("file") MultipartFile file
+    ) {
+        return ApiResponse.success(exchangeService.importOrgs(file));
+    }
+
+    @GetMapping("/export")
+    @RequirePermission(OrgPermissionCodes.EXPORT)
+    @OperationLog("导出组织")
+    public void exportOrgs(HttpServletResponse response) throws IOException {
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        ExcelFileSupport.writeXlsx(
+                exchangeService.exportOrgs(),
+                "组织数据_" + date + ".xlsx",
+                response
+        );
     }
 
     @PostMapping("/uniqueness-check")

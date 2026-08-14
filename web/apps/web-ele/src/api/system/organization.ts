@@ -1,5 +1,6 @@
 import type { OrgOption, OrgType } from '#/api/common/organization';
 import type { AvailabilityResult } from '#/api/system/types';
+import type { ExcelImportResult } from '#/components/excel';
 
 import { requestClient } from '#/api/request';
 
@@ -74,6 +75,20 @@ export async function getOrgDetailApi(id: string) {
 
 export async function createOrgApi(data: OrgCreateRequest) {
   return requestClient.post<string>('/system/orgs', data);
+}
+
+export async function downloadOrgImportTemplateApi() {
+  return requestClient.download<Blob>('/system/orgs/import-template');
+}
+
+export async function importOrgsApi(file: File) {
+  return requestClient.upload<ExcelImportResult>('/system/orgs/import', {
+    file,
+  });
+}
+
+export async function exportOrgsApi() {
+  return requestClient.download<Blob>('/system/orgs/export');
 }
 
 export async function checkOrgUniquenessApi(data: OrgUniquenessCheckRequest) {

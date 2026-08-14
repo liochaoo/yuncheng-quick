@@ -5,15 +5,15 @@ import com.yuncheng.framework.excel.ExcelCellSupport;
 import com.yuncheng.framework.excel.ExcelFileSupport;
 import com.yuncheng.framework.excel.ExcelWorkbookSupport;
 import com.yuncheng.framework.web.exception.PlatformException;
+import com.yuncheng.system.exchange.dto.ExcelImportError;
+import com.yuncheng.system.exchange.dto.ExcelImportResult;
 import com.yuncheng.system.organization.entity.SystemOrg;
 import com.yuncheng.system.organization.service.OrgQueryService;
 import com.yuncheng.system.role.dto.RoleSummary;
 import com.yuncheng.system.role.entity.SystemRole;
 import com.yuncheng.system.role.service.RoleQueryService;
 import com.yuncheng.system.role.service.UserRoleService;
-import com.yuncheng.system.user.dto.UserImportError;
 import com.yuncheng.system.user.dto.UserImportItem;
-import com.yuncheng.system.user.dto.UserImportResult;
 import com.yuncheng.system.user.dto.UserOrgCodeAssignment;
 import com.yuncheng.system.user.dto.UserPageQuery;
 import com.yuncheng.system.user.entity.SystemUser;
@@ -155,7 +155,7 @@ public class UserExchangeService {
         return content;
     }
 
-    public UserImportResult importUsers(MultipartFile file) {
+    public ExcelImportResult importUsers(MultipartFile file) {
         byte[] content = requireImportFile(file);
         try (XSSFWorkbook workbook = ExcelFileSupport.openXlsx(content)) {
             requireWorkbookStructure(workbook);
@@ -165,12 +165,12 @@ public class UserExchangeService {
             }
             Validation validation = validate(rawRows);
             if (validation.errorCount() > 0) {
-                return new UserImportResult(
+                return new ExcelImportResult(
                         false, rawRows.size(), 0, validation.errorCount(), validation.errors()
                 );
             }
             int imported = userCommandService.importUsers(validation.items());
-            return new UserImportResult(true, rawRows.size(), imported, 0, List.of());
+            return new ExcelImportResult(true, rawRows.size(), imported, 0, List.of());
         } catch (PlatformException exception) {
             throw exception;
         } catch (IOException | IllegalArgumentException exception) {
@@ -725,12 +725,12 @@ public class UserExchangeService {
     private record Validation(
             List<UserImportItem> items,
             int errorCount,
-            List<UserImportError> errors
+            List<ExcelImportError> errors
     ) {
     }
 
     private static final class ErrorCollector {
-        private final List<UserImportError> items = new ArrayList<>();
+        private final List<ExcelImportError> items = new ArrayList<>();
         private final Set<Integer> rows = new HashSet<>();
         private int total;
 
@@ -738,7 +738,7 @@ public class UserExchangeService {
             total++;
             rows.add(rowNumber);
             if (items.size() < ERROR_LIMIT) {
-                items.add(new UserImportError(rowNumber, field, message));
+                items.add(new ExcelImportError(rowNumber, field, message));
             }
         }
 
@@ -750,7 +750,7 @@ public class UserExchangeService {
             return total;
         }
 
-        List<UserImportError> items() {
+        List<ExcelImportError> items() {
             return List.copyOf(items);
         }
     }

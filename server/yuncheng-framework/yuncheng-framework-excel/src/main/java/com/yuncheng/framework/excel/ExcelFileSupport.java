@@ -48,7 +48,7 @@ public final class ExcelFileSupport {
         long expandedBytes = 0;
         byte[] buffer = new byte[8192];
         try (ZipArchiveInputStream input = new ZipArchiveInputStream(
-                new ByteArrayInputStream(content)
+                new ByteArrayInputStream(content), "UTF-8", true, true
         )) {
             ZipArchiveEntry entry;
             while ((entry = input.getNextEntry()) != null) {

@@ -395,8 +395,11 @@ function batchRemove() {
       ref="importDialog"
       :download-template="downloadUserImportTemplateApi"
       :import-file="importUsersApi"
+      data-name="用户数据"
+      template-description="模板包含填写说明及当前系统的组织、角色编码参考。"
       template-filename="用户导入模板.xlsx"
       title="导入用户"
+      usage-text="请使用系统模板或本系统导出的用户文件。导入只新增数据，全部校验通过后才会写入。"
       @success="refresh"
     />
     <div class="grid h-full min-h-0 grid-cols-[280px_minmax(0,1fr)] gap-4">

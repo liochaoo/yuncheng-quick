@@ -7,6 +7,7 @@ import com.yuncheng.framework.web.constant.WebConstants;
 import com.yuncheng.framework.web.page.PageResult;
 import com.yuncheng.framework.web.response.ApiResponse;
 import com.yuncheng.framework.web.response.AvailabilityResponse;
+import com.yuncheng.system.exchange.dto.ExcelImportResult;
 import com.yuncheng.system.user.constant.UserPermissionCodes;
 import com.yuncheng.system.user.dto.PasswordResetRequest;
 import com.yuncheng.system.user.dto.UserCreateRequest;
@@ -14,7 +15,6 @@ import com.yuncheng.system.user.dto.UserDetail;
 import com.yuncheng.system.user.dto.UserFormData;
 import com.yuncheng.system.user.dto.UserListItem;
 import com.yuncheng.system.user.dto.UserIdListRequest;
-import com.yuncheng.system.user.dto.UserImportResult;
 import com.yuncheng.system.user.dto.UserPageQuery;
 import com.yuncheng.system.user.dto.UserStatusRequest;
 import com.yuncheng.system.user.dto.UserUniquenessCheckRequest;
@@ -113,7 +113,7 @@ public class UserController {
     @PostMapping("/import")
     @RequirePermission(UserPermissionCodes.ADD)
     @OperationLog("导入用户")
-    public ApiResponse<UserImportResult> importUsers(
+    public ApiResponse<ExcelImportResult> importUsers(
             @RequestPart("file") MultipartFile file
     ) {
         return ApiResponse.success(exchangeService.importUsers(file));

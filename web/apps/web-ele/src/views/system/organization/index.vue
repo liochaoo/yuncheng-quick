@@ -5,19 +5,26 @@ import type { OrgOption } from '#/api/system/organization';
 import type { RowAction } from '#/components/table/row-actions.types';
 import type { BusinessFormMode } from '#/types/business-form';
 
+import { ref } from 'vue';
+
 import { useAccess } from '@vben/access';
 import { Page, useVbenDrawer } from '@vben/common-ui';
-import { Plus } from '@vben/icons';
+import { ArrowUpToLine, Download, Plus } from '@vben/icons';
+import { downloadFileFromBlob } from '@vben/utils';
 
 import { ElButton } from 'element-plus';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   deleteOrgApi,
+  downloadOrgImportTemplateApi,
+  exportOrgsApi,
+  importOrgsApi,
   listOrgChildrenApi,
   listOrgsApi,
 } from '#/api/system/organization';
 import EnumTag from '#/components/display/enum-tag.vue';
+import { ExcelImportDialog } from '#/components/excel';
 import {
   ORG_TYPE_OPTIONS,
   OrgPath,
@@ -55,9 +62,12 @@ const canAccess = {
   add: hasAccessByCodes([ORG_PERMISSION_CODES.ADD]),
   delete: hasAccessByCodes([ORG_PERMISSION_CODES.DELETE]),
   edit: hasAccessByCodes([ORG_PERMISSION_CODES.EDIT]),
+  export: hasAccessByCodes([ORG_PERMISSION_CODES.EXPORT]),
   move: hasAccessByCodes([ORG_PERMISSION_CODES.MOVE]),
 };
 const { runConfirmAction } = useConfirmAction();
+const importDialog = ref<InstanceType<typeof ExcelImportDialog>>();
+const exporting = ref(false);
 
 const [FormDrawer, formDrawerApi] = useVbenDrawer({
   connectedComponent: OrgFormDrawer,
@@ -245,6 +255,26 @@ async function moveSaved() {
   await refreshRootsPreservingExpansion();
 }
 
+async function importSaved() {
+  await refreshRootsPreservingExpansion();
+}
+
+async function exportOrgs() {
+  exporting.value = true;
+  try {
+    const source = await exportOrgsApi();
+    const now = new Date();
+    const date = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('');
+    downloadFileFromBlob({ fileName: `组织数据_${date}.xlsx`, source });
+  } finally {
+    exporting.value = false;
+  }
+}
+
 function openForm(
   mode: BusinessFormMode,
   options: {
@@ -315,6 +345,17 @@ function rowActions(row: OrgOption): RowAction[] {
     <DetailDrawer />
     <FormDrawer @success="formSaved" />
     <MoveDrawer @success="moveSaved" />
+    <ExcelImportDialog
+      ref="importDialog"
+      data-name="组织数据"
+      :download-template="downloadOrgImportTemplateApi"
+      :import-file="importOrgsApi"
+      template-description="模板包含填写说明及当前系统可作为上级的组织编码参考。"
+      template-filename="组织导入模板.xlsx"
+      title="导入组织"
+      usage-text="请使用系统模板或本系统导出的组织文件。导入只新增组织，全部校验通过后才会写入。"
+      @success="importSaved"
+    />
     <Grid table-title="组织列表">
       <template #toolbar-tools>
         <TableToolbarActions>
@@ -325,6 +366,18 @@ function rowActions(row: OrgOption): RowAction[] {
           >
             <Plus class="mr-1 size-4" />
             新增组织
+          </ElButton>
+          <ElButton v-if="canAccess.add" @click="importDialog?.open()">
+            <ArrowUpToLine class="mr-1 size-4" />
+            导入组织
+          </ElButton>
+          <ElButton
+            v-if="canAccess.export"
+            :loading="exporting"
+            @click="exportOrgs"
+          >
+            <Download class="mr-1 size-4" />
+            导出组织
           </ElButton>
         </TableToolbarActions>
       </template>

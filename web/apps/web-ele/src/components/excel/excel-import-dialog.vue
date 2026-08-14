@@ -20,18 +20,25 @@ import {
 
 const props = withDefaults(
   defineProps<{
+    dataName?: string;
     downloadTemplate: () => Promise<Blob>;
     importFile: (file: File) => Promise<ExcelImportResult>;
     maxFileSizeMb?: number;
     maxRows?: number;
+    templateDescription?: string;
     templateFilename?: string;
     title?: string;
+    usageText?: string;
   }>(),
   {
     maxFileSizeMb: 20,
     maxRows: 10_000,
+    dataName: '数据',
+    templateDescription: '模板包含字段填写说明及当前系统可用的编码参考。',
     templateFilename: '导入模板.xlsx',
     title: '导入数据',
+    usageText:
+      '请使用系统模板或本系统导出的文件。导入只新增数据，全部校验通过后才会写入。',
   },
 );
 
@@ -117,7 +124,7 @@ defineExpose({ open });
   >
     <ElAlert :closable="false" show-icon type="info">
       <template #title>
-        请使用系统模板或本系统导出的用户文件。导入只新增数据，全部校验通过后才会写入。
+        {{ usageText }}
       </template>
     </ElAlert>
 
@@ -125,7 +132,7 @@ defineExpose({ open });
       <div>
         <div class="font-medium">填写模板</div>
         <div class="mt-1 text-sm text-muted-foreground">
-          模板包含填写说明及当前系统的组织、角色编码参考。
+          {{ templateDescription }}
         </div>
       </div>
       <ElButton :loading="downloading" @click="handleDownloadTemplate">
@@ -148,7 +155,7 @@ defineExpose({ open });
       <div class="py-3">
         <div class="font-medium">将 Excel 文件拖到此处，或点击选择</div>
         <div class="mt-2 text-sm text-muted-foreground">
-          仅支持 .xlsx，文件不超过 {{ maxFileSizeMb }} MB，用户数据不超过
+          仅支持 .xlsx，文件不超过 {{ maxFileSizeMb }} MB，{{ dataName }}不超过
           {{ maxRows }} 行
         </div>
       </div>

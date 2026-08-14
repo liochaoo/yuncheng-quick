@@ -31,6 +31,37 @@
         WHERE path_ids LIKE CONCAT(#{pathIds}, '%')
     </select>
 
+    <select id="selectSiblingNameConflicts"
+            resultType="com.yuncheng.system.organization.dto.OrgNameConflict">
+        WITH candidates AS (
+            SELECT candidate.source_row,
+                   candidate.parent_code,
+                   candidate.org_name
+            FROM JSON_TABLE(
+                #{candidatesJson},
+                '$[*]' COLUMNS (
+                    source_row INT PATH '$.rowNumber',
+                    parent_code VARCHAR(64) PATH '$.parentCode',
+                    org_name VARCHAR(100) PATH '$.orgName'
+                )
+            ) AS candidate
+        ), ranked AS (
+            SELECT source_row,
+                   MIN(source_row) OVER (
+                       PARTITION BY
+                           parent_code COLLATE utf8mb4_bin,
+                           org_name COLLATE utf8mb4_0900_ai_ci
+                   ) AS first_source_row
+            FROM candidates
+        )
+        SELECT source_row AS rowNumber,
+               first_source_row AS firstRowNumber
+        FROM ranked
+        WHERE source_row > 0
+          AND source_row != first_source_row
+        ORDER BY source_row
+    </select>
+
     <update id="updateSubtreeAfterRename">
         UPDATE system_org
         SET org_code = CASE WHEN id = #{orgId} THEN #{orgCode} ELSE org_code END,

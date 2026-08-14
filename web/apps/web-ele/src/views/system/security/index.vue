@@ -313,9 +313,9 @@ onMounted(() => void load());
 }
 
 :deep(.default-password-grid .el-form-item__label) {
+  flex: 0 0 140px;
   width: 140px !important;
   margin-right: 12px;
-  flex: 0 0 140px;
 }
 
 @media (width <= 640px) {
