@@ -1,7 +1,7 @@
 ARG NODE_IMAGE=node:22.23.1-bookworm-slim
 ARG NGINX_IMAGE=nginxinc/nginx-unprivileged:1.30.2-alpine
 
-FROM ${NODE_IMAGE} AS build
+FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS build
 
 ENV CI=true \
     PNPM_HOME=/pnpm \
@@ -14,7 +14,9 @@ RUN corepack enable \
 
 COPY . .
 
-RUN pnpm install --frozen-lockfile \
+RUN --mount=type=cache,id=yuncheng-quick-pnpm,target=/pnpm/store,sharing=locked \
+    pnpm config set store-dir /pnpm/store \
+    && pnpm install --frozen-lockfile \
     && pnpm run build
 
 FROM ${NGINX_IMAGE}

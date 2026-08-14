@@ -1,13 +1,14 @@
 ARG MAVEN_IMAGE=maven:3.9.16-eclipse-temurin-21
 ARG JAVA_IMAGE=eclipse-temurin:21-jre-noble
 
-FROM ${MAVEN_IMAGE} AS build
+FROM --platform=$BUILDPLATFORM ${MAVEN_IMAGE} AS build
 
 WORKDIR /workspace
 
 COPY . .
 
-RUN mvn -B -ntp -pl yuncheng-boot -am clean package -DskipTests
+RUN --mount=type=cache,id=yuncheng-quick-maven,target=/root/.m2,sharing=locked \
+    mvn -B -ntp -pl yuncheng-boot -am package -DskipTests
 
 FROM ${JAVA_IMAGE}
 
