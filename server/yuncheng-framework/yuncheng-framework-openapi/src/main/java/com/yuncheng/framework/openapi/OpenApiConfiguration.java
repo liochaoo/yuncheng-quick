@@ -23,7 +23,7 @@ import org.springframework.util.AntPathMatcher;
 public class OpenApiConfiguration {
 
     private static final String BEARER_AUTH = "bearerAuth";
-    private static final String FALLBACK_VERSION = "1.0.0";
+    private static final String FALLBACK_VERSION = "1.1.0-SNAPSHOT";
 
     @Bean
     OpenAPI platformOpenApi() {

@@ -12,7 +12,7 @@
 
     <groupId>com.yuncheng</groupId>
     <artifactId>yuncheng-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Yuncheng Quick Parent</name>
     <description>Yuncheng Quick 后端模块的统一 Maven 父工程</description>
